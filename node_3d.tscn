@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://uf1b2n01kkkq"]
 
-[ext_resource type="Image" uid="uid://y6k872ea6yyd" path="res://data.exr" id="1_23jgn"]
+[ext_resource type="Image" uid="uid://ctt6vus6w21kb" path="res://m_terrain_heightmap.png" id="1_mfal1"]
 [ext_resource type="Script" path="res://free_look_camera.gd" id="2_r0bhh"]
 
 [sub_resource type="VoxelGeneratorGraph" id="VoxelGeneratorGraph_khw4c"]
@@ -15,7 +15,7 @@ graph_data = {
 "auto_connect": true,
 "filter": 1,
 "gui_position": Vector2(540, 100),
-"image": ExtResource("1_23jgn"),
+"image": ExtResource("1_mfal1"),
 "type": "Image"
 },
 "11": {
