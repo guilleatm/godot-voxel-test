@@ -1,0 +1,14 @@
+[remap]
+
+importer="image"
+type="Image"
+uid="uid://ctt6vus6w21kb"
+path="res://.godot/imported/m_terrain_heightmap.png-c1f55900a07e41ecff1e948d4d590c6a.image"
+
+[deps]
+
+source_file="res://m_terrain_heightmap.png"
+dest_files=["res://.godot/imported/m_terrain_heightmap.png-c1f55900a07e41ecff1e948d4d590c6a.image"]
+
+[params]
+

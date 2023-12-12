@@ -1,0 +1,162 @@
+[gd_scene load_steps=7 format=3 uid="uid://uf1b2n01kkkq"]
+
+[ext_resource type="Image" uid="uid://y6k872ea6yyd" path="res://data.exr" id="1_23jgn"]
+[ext_resource type="Script" path="res://free_look_camera.gd" id="2_r0bhh"]
+
+[sub_resource type="VoxelGeneratorGraph" id="VoxelGeneratorGraph_khw4c"]
+graph_data = {
+"connections": [[1, 0, 6, 0], [2, 0, 12, 0], [10, 0, 11, 0], [3, 0, 7, 0], [11, 0, 5, 1], [12, 0, 5, 0], [5, 0, 4, 0], [6, 0, 8, 0], [7, 0, 9, 0], [8, 0, 10, 0], [9, 0, 10, 1]],
+"nodes": {
+"1": {
+"gui_position": Vector2(40, 100),
+"type": "InputX"
+},
+"10": {
+"auto_connect": true,
+"filter": 1,
+"gui_position": Vector2(540, 100),
+"image": ExtResource("1_23jgn"),
+"type": "Image"
+},
+"11": {
+"gui_position": Vector2(620, 240),
+"max0": 1.0,
+"max1": 8192.0,
+"min0": 0.0,
+"min1": 0.0,
+"type": "Remap"
+},
+"12": {
+"gui_position": Vector2(820, 20),
+"max": 8192.0,
+"min": 0.0,
+"type": "Clamp"
+},
+"2": {
+"gui_position": Vector2(700, 160),
+"type": "InputY"
+},
+"3": {
+"gui_position": Vector2(40, 260),
+"type": "InputZ"
+},
+"4": {
+"auto_connect": true,
+"gui_position": Vector2(1040, 160),
+"type": "OutputSDF"
+},
+"5": {
+"auto_connect": true,
+"gui_position": Vector2(880, 160),
+"type": "SdfPlane"
+},
+"6": {
+"gui_position": Vector2(180, 100),
+"max": 65536.0,
+"min": 0.0,
+"type": "Clamp"
+},
+"7": {
+"gui_position": Vector2(180, 260),
+"max": 65536.0,
+"min": 0.0,
+"type": "Clamp"
+},
+"8": {
+"gui_position": Vector2(360, 100),
+"max0": 65536.0,
+"max1": 8192.0,
+"min0": 0.0,
+"min1": 0.0,
+"type": "Remap"
+},
+"9": {
+"gui_position": Vector2(360, 260),
+"max0": 65536.0,
+"max1": 8192.0,
+"min0": 0.0,
+"min1": 0.0,
+"type": "Remap"
+}
+},
+"version": 2
+}
+
+[sub_resource type="VoxelMesherTransvoxel" id="VoxelMesherTransvoxel_ncqc3"]
+
+[sub_resource type="Shader" id="Shader_4ulfs"]
+code = "shader_type spatial;
+
+// From Voxel Tools API
+uniform int u_transition_mask;
+
+float get_transvoxel_secondary_factor(int idata) {
+	int cell_border_mask = idata & 63; // Which sides the cell is touching
+	int vertex_border_mask = (idata >> 8) & 63; // Which sides the vertex is touching
+	// If the vertex is near a side where there is a low-resolution neighbor,
+	// move it to secondary position
+	int m = u_transition_mask & cell_border_mask;
+	float t = float(m != 0);
+	// If the vertex lies on one or more sides, and at least one side has no low-resolution neighbor,
+	// don't move the vertex.
+	t *= float((vertex_border_mask & ~u_transition_mask) == 0);
+	
+	// Debugging
+	//t *= 0.5 + 0.5 * sin(TIME * 4.0);
+	//t *= 2.0;
+
+	return t;
+}
+
+vec3 get_transvoxel_position(vec3 vertex_pos, vec4 fdata) {
+	int idata = floatBitsToInt(fdata.a);
+
+	// Move vertices to smooth transitions
+	float secondary_factor = get_transvoxel_secondary_factor(idata);
+	vec3 secondary_position = fdata.xyz;
+	vec3 pos = mix(vertex_pos, secondary_position, secondary_factor);
+
+	// If the mesh combines transitions and the vertex belongs to a transition,
+	// when that transition isn't active we change the position of the vertices so
+	// all triangles will be degenerate and won't be visible.
+	// This is an alternative to rendering them separately,
+	// which has less draw calls and less mesh resources to create in Godot.
+	// Ideally I would tweak the index buffer like LOD does but Godot does not
+	// expose anything to use it that way.
+	int itransition = (idata >> 16) & 0xff; // Is the vertex on a transition mesh?
+	float transition_cull = float(itransition == 0 || (itransition & u_transition_mask) != 0);
+	pos *= transition_cull;
+
+	return pos;
+}
+
+void vertex() {
+	VERTEX = get_transvoxel_position(VERTEX, CUSTOM0);
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_abgn5"]
+render_priority = 0
+shader = SubResource("Shader_4ulfs")
+shader_parameter/u_transition_mask = null
+
+[node name="Node3D" type="Node3D"]
+
+[node name="VoxelLodTerrain" type="VoxelLodTerrain" parent="."]
+generator = SubResource("VoxelGeneratorGraph_khw4c")
+mesher = SubResource("VoxelMesherTransvoxel_ncqc3")
+view_distance = 4096
+voxel_bounds = AABB(0, 0, 0, 65536, 8192, 65536)
+lod_count = 16
+material = SubResource("ShaderMaterial_abgn5")
+threaded_update_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.975465, 0)
+script = ExtResource("2_r0bhh")
+
+[node name="VoxelViewer" type="VoxelViewer" parent="Camera3D"]
+view_distance = 4906
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.813963, 0.580916, 0, -0.580916, 0.813963, 0, 2.19105, 0)
