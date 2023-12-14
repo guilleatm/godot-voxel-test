@@ -1,0 +1,81 @@
+[gd_resource type="VoxelGeneratorGraph" load_steps=2 format=3 uid="uid://b7fww5mewecnr"]
+
+[ext_resource type="Image" uid="uid://ctt6vus6w21kb" path="res://Assets/m_terrain_heightmap.png" id="1_hsguo"]
+
+[resource]
+graph_data = {
+"connections": [[1, 0, 6, 0], [10, 0, 11, 0], [11, 0, 5, 1], [12, 0, 5, 0], [2, 0, 12, 0], [3, 0, 7, 0], [5, 0, 4, 0], [6, 0, 8, 0], [7, 0, 9, 0], [8, 0, 10, 0], [9, 0, 10, 1]],
+"nodes": {
+"1": {
+"gui_position": Vector2(40, 100),
+"type": "InputX"
+},
+"10": {
+"auto_connect": true,
+"gui_position": Vector2(540, 100),
+"image": ExtResource("1_hsguo"),
+"type": "Image"
+},
+"11": {
+"gui_position": Vector2(620, 240),
+"max0": 1.0,
+"max1": 8192.0,
+"min0": 0.0,
+"min1": 0.0,
+"type": "Remap"
+},
+"12": {
+"gui_position": Vector2(820, 20),
+"max": 8192.0,
+"min": 0.0,
+"type": "Clamp"
+},
+"2": {
+"gui_position": Vector2(700, 160),
+"type": "InputY"
+},
+"3": {
+"gui_position": Vector2(40, 260),
+"type": "InputZ"
+},
+"4": {
+"auto_connect": true,
+"gui_position": Vector2(1040, 160),
+"type": "OutputSDF"
+},
+"5": {
+"auto_connect": true,
+"gui_position": Vector2(880, 160),
+"type": "SdfPlane"
+},
+"6": {
+"gui_position": Vector2(180, 100),
+"max": 65536.0,
+"min": 0.0,
+"type": "Clamp"
+},
+"7": {
+"gui_position": Vector2(180, 260),
+"max": 65536.0,
+"min": 0.0,
+"type": "Clamp"
+},
+"8": {
+"gui_position": Vector2(360, 100),
+"max0": 65536.0,
+"max1": 8192.0,
+"min0": 0.0,
+"min1": 0.0,
+"type": "Remap"
+},
+"9": {
+"gui_position": Vector2(360, 260),
+"max0": 65536.0,
+"max1": 8192.0,
+"min0": 0.0,
+"min1": 0.0,
+"type": "Remap"
+}
+},
+"version": 2
+}
