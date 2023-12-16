@@ -1,0 +1,9 @@
+[gd_resource type="VoxelGeneratorNoise2D" load_steps=2 format=3 uid="uid://cmn4p28tu8q5l"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_xddf6"]
+
+[resource]
+channel = 0
+height_start = -1.0
+height_range = 30.0
+noise = SubResource("FastNoiseLite_xddf6")

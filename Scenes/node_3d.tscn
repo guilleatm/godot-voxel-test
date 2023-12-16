@@ -1,10 +1,13 @@
-[gd_scene load_steps=8 format=3 uid="uid://uf1b2n01kkkq"]
+[gd_scene load_steps=11 format=3 uid="uid://uf1b2n01kkkq"]
 
+[ext_resource type="VoxelGeneratorNoise2D" uid="uid://cmn4p28tu8q5l" path="res://Assets/noise2d_generator.tres" id="1_4rl5a"]
 [ext_resource type="VoxelGeneratorGraph" uid="uid://b7fww5mewecnr" path="res://Assets/original_graph_generator.tres" id="1_gps7y"]
+[ext_resource type="VoxelMesherBlocky" uid="uid://nrkpn5x05c5d" path="res://Assets/blocky_mesher.tres" id="2_e18mx"]
 [ext_resource type="VoxelMesherTransvoxel" uid="uid://b4aepuy1nhq55" path="res://Assets/original_mesher.tres" id="2_hwu08"]
 [ext_resource type="Shader" path="res://Assets/original_shader.gdshader" id="3_8iy6o"]
 [ext_resource type="Script" path="res://Scripts/free_look_camera.gd" id="4_ouhbo"]
 [ext_resource type="Script" path="res://Scripts/test_script.gd" id="5_0vtch"]
+[ext_resource type="Texture2D" uid="uid://bw6nmqyqav3oh" path="res://Assets/2d_handle.png" id="8_uq1x1"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uf1bi"]
 render_priority = 0
@@ -16,13 +19,17 @@ length = 10.0
 
 [node name="Node3D" type="Node3D"]
 
+[node name="VoxelTerrain" type="VoxelTerrain" parent="."]
+visible = false
+generator = ExtResource("1_4rl5a")
+mesher = ExtResource("2_e18mx")
+
 [node name="VoxelLodTerrain" type="VoxelLodTerrain" parent="."]
 generator = ExtResource("1_gps7y")
 mesher = ExtResource("2_hwu08")
-view_distance = 300
 voxel_bounds = AABB(0, 0, 0, 524288, 524288, 524288)
-lod_count = 16
 material = SubResource("ShaderMaterial_uf1bi")
+mesh_block_size = 32
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.975465, 0)
@@ -46,12 +53,33 @@ transform = Transform3D(1, 0, 0, 0, 0.813963, 0.580916, 0, -0.580916, 0.813963, 
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
 [node name="Label" type="Label" parent="Control"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
+layout_mode = 1
+offset_right = 91.0
+offset_bottom = 26.0
 text = "Use C and V"
+
+[node name="CenterContainer" type="CenterContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/CenterContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+
+[node name="TextureRect" type="TextureRect" parent="Control/CenterContainer/MarginContainer"]
+layout_mode = 2
+texture = ExtResource("8_uq1x1")
