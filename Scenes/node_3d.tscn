@@ -1,30 +1,34 @@
-[gd_scene load_steps=11 format=3 uid="uid://uf1b2n01kkkq"]
+[gd_scene load_steps=10 format=3 uid="uid://uf1b2n01kkkq"]
 
 [ext_resource type="VoxelGeneratorNoise2D" uid="uid://cmn4p28tu8q5l" path="res://Assets/noise2d_generator.tres" id="1_4rl5a"]
 [ext_resource type="VoxelGeneratorGraph" uid="uid://b7fww5mewecnr" path="res://Assets/original_graph_generator.tres" id="1_gps7y"]
-[ext_resource type="VoxelMesherBlocky" uid="uid://nrkpn5x05c5d" path="res://Assets/blocky_mesher.tres" id="2_e18mx"]
 [ext_resource type="VoxelMesherTransvoxel" uid="uid://b4aepuy1nhq55" path="res://Assets/original_mesher.tres" id="2_hwu08"]
 [ext_resource type="Shader" path="res://Assets/original_shader.gdshader" id="3_8iy6o"]
 [ext_resource type="Script" path="res://Scripts/free_look_camera.gd" id="4_ouhbo"]
 [ext_resource type="Script" path="res://Scripts/test_script.gd" id="5_0vtch"]
 [ext_resource type="Texture2D" uid="uid://bw6nmqyqav3oh" path="res://Assets/2d_handle.png" id="8_uq1x1"]
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4xaoo"]
+render_priority = 0
+shader = ExtResource("3_8iy6o")
+shader_parameter/u_transition_mask = null
+shader_parameter/albedo_color = Color(0.152941, 0.482353, 0.372549, 1)
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uf1bi"]
 render_priority = 0
 shader = ExtResource("3_8iy6o")
 shader_parameter/u_transition_mask = null
-
-[sub_resource type="SeparationRayShape3D" id="SeparationRayShape3D_w0u7u"]
-length = 10.0
+shader_parameter/albedo_color = Color(1, 1, 1, 1)
 
 [node name="Node3D" type="Node3D"]
 
 [node name="VoxelTerrain" type="VoxelTerrain" parent="."]
-visible = false
 generator = ExtResource("1_4rl5a")
-mesher = ExtResource("2_e18mx")
+mesher = ExtResource("2_hwu08")
+material_override = SubResource("ShaderMaterial_4xaoo")
 
 [node name="VoxelLodTerrain" type="VoxelLodTerrain" parent="."]
+visible = false
 generator = ExtResource("1_gps7y")
 mesher = ExtResource("2_hwu08")
 voxel_bounds = AABB(0, 0, 0, 524288, 524288, 524288)
@@ -42,11 +46,8 @@ view_distance = 4906
 
 [node name="TestNode" type="Node3D" parent="Camera3D" node_paths=PackedStringArray("terrain", "camera")]
 script = ExtResource("5_0vtch")
-terrain = NodePath("../../VoxelLodTerrain")
+terrain = NodePath("../../VoxelTerrain")
 camera = NodePath("..")
-
-[node name="ShapeCast3D" type="ShapeCast3D" parent="Camera3D"]
-shape = SubResource("SeparationRayShape3D_w0u7u")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.813963, 0.580916, 0, -0.580916, 0.813963, 0, 2.19105, 0)

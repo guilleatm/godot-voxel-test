@@ -1,11 +1,12 @@
 class_name test_script extends Node3D
 
-@export var terrain : VoxelLodTerrain
+@export var terrain : VoxelTerrain
 @export var camera : Camera3D
 
 var vt: VoxelTool
 var buffer : VoxelBuffer = VoxelBuffer.new();
 var buffer_size : int;
+var raycast_distance : float = 10_000.0;
 
 func _ready():
 	vt = terrain.get_voxel_tool()
@@ -32,26 +33,26 @@ func _unhandled_input(event):
 
 func my_remove() -> void:
 	var forward : Vector3 = -camera.basis.z.normalized();
-	var max_distance : float = 10000.0;
-	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, max_distance);
+	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, raycast_distance);
 
 	if (raycast_result != null):
 		vt.channel = VoxelBuffer.CHANNEL_SDF;
 		vt.mode = VoxelTool.MODE_REMOVE;
 		
 		# DO SPHERE IS WORKING FINE
-		#vt.do_sphere(Vector3(raycast_result.position), buffer_size);
+		vt.do_sphere(Vector3(raycast_result.position), buffer_size);
 
 		# DO BOX IS NOT WORKING
-		var end : Vector3i = raycast_result.position + Vector3i.ONE * buffer_size;
-		vt.do_box(raycast_result.position, end);
+		var box_size : int = 4;
+#		var start : Vector3i = raycast_result.position + Vector3i(forward * box_size / 2);
+#		var end : Vector3i = raycast_result.position - Vector3i(forward * box_size / 2);
+#		vt.do_box(start, end);
 	
 
 func my_copy() -> void:
 	var forward : Vector3 = -camera.basis.z.normalized();
 	
-	var max_distance : float = 10000.0;
-	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, max_distance);
+	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, raycast_distance);
 
 	if (raycast_result != null):
 		buffer.create(buffer_size, buffer_size, buffer_size);
@@ -71,8 +72,7 @@ func my_copy() -> void:
 func my_paste() -> void:
 	var forward : Vector3 = -camera.basis.z.normalized();
 	
-	var max_distance : float = 10000.0;
-	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, max_distance);
+	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, raycast_distance);
 
 	if (raycast_result != null):
 		#var channels_mask : int = 1 << VoxelBuffer.CHANNEL_SDF;
