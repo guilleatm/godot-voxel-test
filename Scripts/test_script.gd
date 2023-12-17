@@ -10,8 +10,8 @@ var buffer_size : int;
 func _ready():
 	vt = terrain.get_voxel_tool()
 
-	vt.channel = VoxelBuffer.CHANNEL_SDF
-	
+	vt.channel = VoxelBuffer.CHANNEL_SDF # overriding this in my_remove
+
 	buffer_size = terrain.mesh_block_size;
 	# vt.mode = VoxelTool.MODE_ADD # Not necessary
 	# vt.value = 1 # Not necessary
@@ -26,9 +26,27 @@ func _unhandled_input(event):
 			my_copy()
 		if event.pressed and event.keycode == KEY_V:
 			my_paste()
+		if event.pressed and event.keycode == KEY_R:
+			my_remove()
 	
+
+func my_remove() -> void:
+	var forward : Vector3 = -camera.basis.z.normalized();
+	var max_distance : float = 10000.0;
+	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, max_distance);
+
+	if (raycast_result != null):
+		vt.channel = VoxelBuffer.CHANNEL_SDF;
+		vt.mode = VoxelTool.MODE_REMOVE;
+		
+		# DO SPHERE IS WORKING FINE
+		#vt.do_sphere(Vector3(raycast_result.position), buffer_size);
+
+		# DO BOX IS NOT WORKING
+		var end : Vector3i = raycast_result.position + Vector3i.ONE * buffer_size;
+		vt.do_box(raycast_result.position, end);
 	
-	
+
 func my_copy() -> void:
 	var forward : Vector3 = -camera.basis.z.normalized();
 	
@@ -65,41 +83,3 @@ func my_paste() -> void:
 		vt.paste(raycast_result.previous_position, buffer, channels_mask);
 		
 		print("Buffer of size " + str(buffer.get_size()) + " pasted to voxel " + str(raycast_result.position));
-
-#func test2():
-#	var forward : Vector3 = -camera.basis.z.normalized();
-#
-#	var max_distance : float = 10000.0;
-#	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, max_distance);
-#
-#	if (raycast_result == null):
-#		print("Raycast from " + str(global_position) + " dir: " + str(forward) + " is null.");
-#
-#	else:
-#		print("Raycast from " + str(global_position) + " dir: " + str(forward) + " hit voxel " + str(raycast_result.position));
-#
-#		var buffer : VoxelBuffer = VoxelBuffer.new();
-#		buffer.create(terrain.mesh_block_size, terrain.mesh_block_size, terrain.mesh_block_size);
-#		var channels_mask : int = 1 << VoxelBuffer.CHANNEL_SDF;
-#		# var channels_mask : int = 0xff;
-#
-#		vt.copy(raycast_result.position, buffer, channels_mask);
-#
-#		var offset : Vector3i = Vector3i.RIGHT * 4;
-#
-#		vt.paste(raycast_result.position + offset, buffer, channels_mask);
-#
-#func test():
-#
-#	var origin : Vector3i = Vector3i(global_position);
-#
-#	var buffer : VoxelBuffer = VoxelBuffer.new();
-#	var channels_mask : int = 1 << VoxelBuffer.CHANNEL_SDF;
-#
-#	vt.copy(origin, buffer, channels_mask);
-#
-#	var offset : Vector3i = Vector3i.ONE * 4;
-#
-#	vt.paste(origin + offset, buffer, channels_mask);
-#
-
