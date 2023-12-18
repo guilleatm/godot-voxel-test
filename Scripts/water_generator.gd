@@ -3,9 +3,8 @@ class_name WaterGenerator extends VoxelGeneratorScript
 const channel: int = VoxelBuffer.CHANNEL_SDF;
 var channel_mask: int = _get_used_channels_mask();
 
-var mutex: Mutex = Mutex.new()
+#var mutex: Mutex = Mutex.new()
 
-var terrain_buffer: VoxelBuffer;
 var terrain_tool: VoxelTool;
 
 func _init(terrain: VoxelTerrain):
@@ -30,20 +29,23 @@ func _generate_block( out_buffer: VoxelBuffer, origin_in_voxels: Vector3i, lod: 
 	
 	var size: Vector3i = out_buffer.get_size();
 	
-	terrain_buffer = VoxelBuffer.new();
+#	mutex.lock();
+	var terrain_buffer: VoxelBuffer = VoxelBuffer.new(); # this is per thread to avoid multithreading issues, we can use mutext too (profile)
 	terrain_buffer.create(size.x, size.y, size.z);
 	
 	terrain_tool.copy(origin_in_voxels, terrain_buffer, channel_mask);
 	
-	if (terrain_buffer.is_uniform(channel)): return;
-
-	tprint("I am " + str(origin_in_voxels));
+#	if (terrain_buffer.is_uniform(channel)): return;
 
 	for y in size.y:
 		if (origin_in_voxels.y + y < 0):
 			for x in size.x:
 				for z in size.z:
-					out_buffer.set_voxel_f(-1.0, x, y, z, channel);
+					var terrain_voxel: float = terrain_buffer.get_voxel_f(x, y, z, channel);
+					if (terrain_voxel >= 0):
+						out_buffer.set_voxel_f(-1.0, x, y, z, channel);
+					
+#	mutex.unlock();
 
 
 #	for y in size.y:

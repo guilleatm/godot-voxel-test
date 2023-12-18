@@ -51,13 +51,13 @@ func my_remove() -> void:
 		vt.mode = VoxelTool.MODE_REMOVE;
 		
 		# DO SPHERE IS WORKING FINE
-		#vt.do_sphere(Vector3(raycast_result.position), buffer_size);
+		vt.do_sphere(Vector3(raycast_result.position), buffer_size);
 
 		# DO BOX IS NOT WORKING
-		var box_size : int = 4;
-		var start : Vector3i = raycast_result.position + Vector3i(forward * box_size / 2);
-		var end : Vector3i = raycast_result.position - Vector3i(forward * box_size / 2);
-		vt.do_box(start, end);
+#		var box_size : int = 4;
+#		var start : Vector3i = raycast_result.position + Vector3i(forward * box_size / 2);
+#		var end : Vector3i = raycast_result.position - Vector3i(forward * box_size / 2);
+#		vt.do_box(start, end);
 	
 
 func my_copy() -> void:
