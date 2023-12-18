@@ -1,7 +1,10 @@
 class_name test_script extends Node3D
 
 @export var terrain : VoxelTerrain
+@export var water : VoxelTerrain
 @export var camera : Camera3D
+
+const water_generator = preload("res://Scripts/water_generator.gd");
 
 var vt: VoxelTool
 var buffer : VoxelBuffer = VoxelBuffer.new();
@@ -14,6 +17,9 @@ func _ready():
 	vt.channel = VoxelBuffer.CHANNEL_SDF # overriding this in my_remove
 
 	buffer_size = terrain.mesh_block_size;
+
+
+	
 	# vt.mode = VoxelTool.MODE_ADD # Not necessary
 	# vt.value = 1 # Not necessary
 
@@ -29,7 +35,12 @@ func _unhandled_input(event):
 			my_paste()
 		if event.pressed and event.keycode == KEY_R:
 			my_remove()
-	
+		if event.pressed and event.keycode == KEY_N:
+			create_water()
+
+func create_water() -> void:
+	water.generator = water_generator.new(terrain);
+
 
 func my_remove() -> void:
 	var forward : Vector3 = -camera.basis.z.normalized();
@@ -40,13 +51,13 @@ func my_remove() -> void:
 		vt.mode = VoxelTool.MODE_REMOVE;
 		
 		# DO SPHERE IS WORKING FINE
-		vt.do_sphere(Vector3(raycast_result.position), buffer_size);
+		#vt.do_sphere(Vector3(raycast_result.position), buffer_size);
 
 		# DO BOX IS NOT WORKING
 		var box_size : int = 4;
-#		var start : Vector3i = raycast_result.position + Vector3i(forward * box_size / 2);
-#		var end : Vector3i = raycast_result.position - Vector3i(forward * box_size / 2);
-#		vt.do_box(start, end);
+		var start : Vector3i = raycast_result.position + Vector3i(forward * box_size / 2);
+		var end : Vector3i = raycast_result.position - Vector3i(forward * box_size / 2);
+		vt.do_box(start, end);
 	
 
 func my_copy() -> void:
