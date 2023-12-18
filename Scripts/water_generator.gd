@@ -24,23 +24,26 @@ func tprint(msg: String):
 func _generate_block( out_buffer: VoxelBuffer, origin_in_voxels: Vector3i, lod: int ) -> void:
 	if (lod != 0): return;
 	
+	if (origin_in_voxels.y > 0): return;
+	
+	if (origin_in_voxels.length() > 200): return;
+	
 	var size: Vector3i = out_buffer.get_size();
 	
 	terrain_buffer = VoxelBuffer.new();
 	terrain_buffer.create(size.x, size.y, size.z);
 	
 	terrain_tool.copy(origin_in_voxels, terrain_buffer, channel_mask);
+	
+	if (terrain_buffer.is_uniform(channel)): return;
 
+	tprint("I am " + str(origin_in_voxels));
 
 	for y in size.y:
-		if (origin_in_voxels.y + y >= 0):
-			continue;
-			
-		for x in size.x:
-			out_buffer.set_voxel_f(-1.0, 0, y, 0, channel);
-		
-	
-	return;
+		if (origin_in_voxels.y + y < 0):
+			for x in size.x:
+				for z in size.z:
+					out_buffer.set_voxel_f(-1.0, x, y, z, channel);
 
 
 #	for y in size.y:

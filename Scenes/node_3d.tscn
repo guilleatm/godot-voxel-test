@@ -34,7 +34,7 @@ material = SubResource("ShaderMaterial_uf1bi")
 mesh_block_size = 32
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.975465, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16.1849, 0)
 script = ExtResource("4_ouhbo")
 default_velocity = 100.0
 boost_speed_multiplier = 15.0
@@ -89,9 +89,11 @@ texture = ExtResource("8_uq1x1")
 [node name="terrain" type="VoxelTerrain" parent="."]
 generator = ExtResource("1_4rl5a")
 mesher = ExtResource("2_hwu08")
+bounds = AABB(-96, -32, -96, 192, 128, 192)
 material_override = SubResource("ShaderMaterial_4xaoo")
 
 [node name="water" type="VoxelTerrain" parent="."]
 mesher = ExtResource("2_hwu08")
+bounds = AABB(-96, -32, -96, 192, 128, 192)
 generate_collisions = false
 material_override = SubResource("StandardMaterial3D_pcwu4")
