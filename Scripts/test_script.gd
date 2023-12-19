@@ -1,4 +1,5 @@
-class_name test_script extends Node3D
+class_name global extends Node3D
+
 
 @export var terrain : VoxelTerrain
 @export var water : VoxelTerrain
@@ -51,7 +52,7 @@ func my_remove() -> void:
 		vt.mode = VoxelTool.MODE_REMOVE;
 		
 		# DO SPHERE IS WORKING FINE
-		vt.do_sphere(Vector3(raycast_result.position), buffer_size);
+		vt.do_sphere(Vector3(raycast_result.position), buffer_size / 2);
 
 		# DO BOX IS NOT WORKING
 #		var box_size : int = 4;

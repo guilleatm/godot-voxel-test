@@ -4,5 +4,5 @@
 
 [resource]
 height_start = -10.0
-height_range = 30.0
+height_range = 50.0
 noise = SubResource("FastNoiseLite_xddf6")
