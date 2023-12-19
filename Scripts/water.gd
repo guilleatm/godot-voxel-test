@@ -34,7 +34,7 @@ func is_there_water(area_origin: Vector3i, area_size: Vector3i) -> Array:
 				if (water_buffer.get_voxel_f(x, y, z, channel) < 0):
 					return [true, Vector3i(x, y, z)];
 					
-	return [false, Vector3i.ZERO];
+	return [false, Vector3i.ZERO];git 
 
 
 
