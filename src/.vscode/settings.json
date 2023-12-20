@@ -1,0 +1,13 @@
+{
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}",
+        "../godot-cpp/include/",
+        "../godot-cpp/gen/include/",
+        "../godot-cpp/gdextension/"
+    ],
+    "files.associations": {
+        "*.tcc": "cpp",
+        "string_view": "cpp",
+        "functional": "cpp"
+    }
+}

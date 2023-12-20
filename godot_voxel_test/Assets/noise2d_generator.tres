@@ -3,7 +3,6 @@
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_xddf6"]
 
 [resource]
-channel = 0
-height_start = -1.0
-height_range = 30.0
+height_start = -16.0
+height_range = 40.0
 noise = SubResource("FastNoiseLite_xddf6")

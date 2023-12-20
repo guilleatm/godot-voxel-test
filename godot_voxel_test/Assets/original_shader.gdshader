@@ -2,6 +2,7 @@ shader_type spatial;
 
 // From Voxel Tools API
 uniform int u_transition_mask;
+uniform vec4 albedo_color : source_color;
 
 float get_transvoxel_secondary_factor(int idata) {
 	int cell_border_mask = idata & 63; // Which sides the cell is touching
@@ -45,4 +46,8 @@ vec3 get_transvoxel_position(vec3 vertex_pos, vec4 fdata) {
 
 void vertex() {
 	VERTEX = get_transvoxel_position(VERTEX, CUSTOM0);
+}
+
+void fragment() {
+	ALBEDO = albedo_color.rgb;
 }

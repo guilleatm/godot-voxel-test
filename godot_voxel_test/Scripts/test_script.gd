@@ -1,18 +1,26 @@
-class_name test_script extends Node3D
+class_name global extends Node3D
 
-@export var terrain : VoxelLodTerrain
+
+@export var terrain : VoxelTerrain
+@export var water : VoxelTerrain
 @export var camera : Camera3D
+
+#const water_generator = preload("res://Scripts/water_generator.gd");
 
 var vt: VoxelTool
 var buffer : VoxelBuffer = VoxelBuffer.new();
 var buffer_size : int;
+var raycast_distance : float = 10_000.0;
 
 func _ready():
 	vt = terrain.get_voxel_tool()
 
-	vt.channel = VoxelBuffer.CHANNEL_SDF
-	
+	vt.channel = VoxelBuffer.CHANNEL_SDF # overriding this in my_remove
+
 	buffer_size = terrain.mesh_block_size;
+
+
+	
 	# vt.mode = VoxelTool.MODE_ADD # Not necessary
 	# vt.value = 1 # Not necessary
 
@@ -26,14 +34,38 @@ func _unhandled_input(event):
 			my_copy()
 		if event.pressed and event.keycode == KEY_V:
 			my_paste()
+		if event.pressed and event.keycode == KEY_R:
+			my_remove()
+		if event.pressed and event.keycode == KEY_N:
+			create_water()
+
+func create_water() -> void:
+	pass;
+#	water.generator = water_generator.new();
+
+
+func my_remove() -> void:
+	var forward : Vector3 = -camera.basis.z.normalized();
+	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, raycast_distance);
+
+	if (raycast_result != null):
+		vt.channel = VoxelBuffer.CHANNEL_SDF;
+		vt.mode = VoxelTool.MODE_REMOVE;
+		
+		# DO SPHERE IS WORKING FINE
+		vt.do_sphere(Vector3(raycast_result.position), buffer_size / 2);
+
+		# DO BOX IS NOT WORKING
+#		var box_size : int = 4;
+#		var start : Vector3i = raycast_result.position + Vector3i(forward * box_size / 2);
+#		var end : Vector3i = raycast_result.position - Vector3i(forward * box_size / 2);
+#		vt.do_box(start, end);
 	
-	
-	
+
 func my_copy() -> void:
 	var forward : Vector3 = -camera.basis.z.normalized();
 	
-	var max_distance : float = 10000.0;
-	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, max_distance);
+	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, raycast_distance);
 
 	if (raycast_result != null):
 		buffer.create(buffer_size, buffer_size, buffer_size);
@@ -53,8 +85,7 @@ func my_copy() -> void:
 func my_paste() -> void:
 	var forward : Vector3 = -camera.basis.z.normalized();
 	
-	var max_distance : float = 10000.0;
-	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, max_distance);
+	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, raycast_distance);
 
 	if (raycast_result != null):
 		#var channels_mask : int = 1 << VoxelBuffer.CHANNEL_SDF;
@@ -65,41 +96,3 @@ func my_paste() -> void:
 		vt.paste(raycast_result.previous_position, buffer, channels_mask);
 		
 		print("Buffer of size " + str(buffer.get_size()) + " pasted to voxel " + str(raycast_result.position));
-
-#func test2():
-#	var forward : Vector3 = -camera.basis.z.normalized();
-#
-#	var max_distance : float = 10000.0;
-#	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, max_distance);
-#
-#	if (raycast_result == null):
-#		print("Raycast from " + str(global_position) + " dir: " + str(forward) + " is null.");
-#
-#	else:
-#		print("Raycast from " + str(global_position) + " dir: " + str(forward) + " hit voxel " + str(raycast_result.position));
-#
-#		var buffer : VoxelBuffer = VoxelBuffer.new();
-#		buffer.create(terrain.mesh_block_size, terrain.mesh_block_size, terrain.mesh_block_size);
-#		var channels_mask : int = 1 << VoxelBuffer.CHANNEL_SDF;
-#		# var channels_mask : int = 0xff;
-#
-#		vt.copy(raycast_result.position, buffer, channels_mask);
-#
-#		var offset : Vector3i = Vector3i.RIGHT * 4;
-#
-#		vt.paste(raycast_result.position + offset, buffer, channels_mask);
-#
-#func test():
-#
-#	var origin : Vector3i = Vector3i(global_position);
-#
-#	var buffer : VoxelBuffer = VoxelBuffer.new();
-#	var channels_mask : int = 1 << VoxelBuffer.CHANNEL_SDF;
-#
-#	vt.copy(origin, buffer, channels_mask);
-#
-#	var offset : Vector3i = Vector3i.ONE * 4;
-#
-#	vt.paste(origin + offset, buffer, channels_mask);
-#
-
