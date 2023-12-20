@@ -10,7 +10,13 @@ var water_vt: VoxelTool;
 var terrain_vt: VoxelTool;
 
 func _ready():
-	generator = water_generator.new(terrain);
+
+	var g = water_generator.new();
+	g.create(terrain);
+	
+	generator = g;
+	
+	
 	
 	water_vt = get_voxel_tool();
 	terrain_vt = terrain.get_voxel_tool();
@@ -34,7 +40,7 @@ func is_there_water(area_origin: Vector3i, area_size: Vector3i) -> Array:
 				if (water_buffer.get_voxel_f(x, y, z, channel) < 0):
 					return [true, Vector3i(x, y, z)];
 					
-	return [false, Vector3i.ZERO];git 
+	return [false, Vector3i.ZERO]; 
 
 
 

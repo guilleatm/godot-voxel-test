@@ -5,7 +5,7 @@ class_name global extends Node3D
 @export var water : VoxelTerrain
 @export var camera : Camera3D
 
-const water_generator = preload("res://Scripts/water_generator.gd");
+#const water_generator = preload("res://Scripts/water_generator.gd");
 
 var vt: VoxelTool
 var buffer : VoxelBuffer = VoxelBuffer.new();
@@ -40,7 +40,8 @@ func _unhandled_input(event):
 			create_water()
 
 func create_water() -> void:
-	water.generator = water_generator.new(terrain);
+	pass;
+#	water.generator = water_generator.new();
 
 
 func my_remove() -> void:

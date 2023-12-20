@@ -93,13 +93,12 @@ bounds = AABB(-96, -32, -96, 192, 128, 192)
 material_override = SubResource("ShaderMaterial_4xaoo")
 script = ExtResource("8_f0mcc")
 
-[node name="water" type="VoxelTerrain" parent="."]
+[node name="water" type="VoxelTerrain" parent="." node_paths=PackedStringArray("terrain")]
 mesher = ExtResource("2_hwu08")
 bounds = AABB(-96, -32, -96, 192, 128, 192)
 generate_collisions = false
 material_override = SubResource("StandardMaterial3D_pcwu4")
 script = ExtResource("9_xcei2")
-terrain = Object(VoxelTerrain,"_import_path":NodePath(""),"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"editor_description":"","transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"stream":null,"generator":ExtResource("1_4rl5a"),"mesher":ExtResource("2_hwu08"),"gi_mode":0,"cast_shadow":1,"render_layers_mask":1,"bounds":AABB(-96, -32, -96, 192, 128, 192),"max_view_distance":128,"generate_collisions":true,"collision_layer":1,"collision_mask":1,"collision_margin":0.04,"material_override":SubResource("ShaderMaterial_4xaoo"),"block_enter_notification_enabled":false,"area_edit_notification_enabled":false,"automatic_loading_enabled":true,"run_stream_in_editor":true,"mesh_block_size":16,"use_gpu_generation":false,"script":ExtResource("8_f0mcc"))
-
+terrain = NodePath("../terrain")
 
 [connection signal="on_area_edited" from="terrain" to="water" method="on_area_edited"]
