@@ -20,11 +20,8 @@ public:
 	WaterGenerator();
 	~WaterGenerator();
 
-
-	void _generate_block(VoxelBuffer out_buffer, Vector3i origin_in_voxels, int lod) override;
-
+	void _generate_block(const Ref<VoxelBuffer> &out_buffer, const Vector3i &origin_in_voxels, int lod) override;
 	int _get_used_channels_mask() const override;
-
 };
 
 }
