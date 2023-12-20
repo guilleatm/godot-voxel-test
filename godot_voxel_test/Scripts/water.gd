@@ -4,19 +4,16 @@ extends VoxelTerrain
 
 const channel: int = VoxelBuffer.CHANNEL_SDF;
 const channel_mask: int = 1 << channel;
-const water_generator = preload("res://Scripts/water_generator.gd");
 
 var water_vt: VoxelTool;
 var terrain_vt: VoxelTool;
 
 func _ready():
 
-	var g = water_generator.new();
-	g.create(terrain);
+	var water_generator = WaterGenerator.new();
+	water_generator.create(terrain);
 	
-	generator = g;
-	
-	
+	generator = water_generator;
 	
 	water_vt = get_voxel_tool();
 	terrain_vt = terrain.get_voxel_tool();
