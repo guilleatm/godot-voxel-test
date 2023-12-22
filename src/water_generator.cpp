@@ -29,10 +29,13 @@ void WaterGenerator::_generate_block(const Ref<VoxelBuffer> &out_buffer, const V
 	Vector3i size = out_buffer.ptr()->get_size();
 
 	// We create a VoxelBuffer each time to avoid using mutex.
+
 	VoxelBuffer terrain_buffer = VoxelBuffer();
 	terrain_buffer.create(size.x, size.y, size.z);
-		
-	terrain_tool.ptr()->copy(origin_in_voxels, &terrain_buffer, channel_mask);
+
+	Ref<VoxelBuffer> ref_terrain_buffer = Ref<VoxelBuffer>(&terrain_buffer);
+
+	terrain_tool.ptr()->copy(origin_in_voxels, ref_terrain_buffer, channel_mask);
 	
 	for (int y = 0; y < size.y; y++) {
 		if (origin_in_voxels.y + y > 0) break;
