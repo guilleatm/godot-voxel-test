@@ -89,7 +89,7 @@ texture = ExtResource("8_uq1x1")
 [node name="WaterSimulation" type="WaterSimulation" parent="."]
 Terrain = NodePath("../terrain")
 Water = NodePath("../water")
-"Simulation Timestep" = 100
+"Simulation Timestep (miliseconds)" = 2000
 
 [node name="terrain" type="VoxelTerrain" parent="."]
 generator = ExtResource("1_4rl5a")

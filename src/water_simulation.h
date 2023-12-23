@@ -8,8 +8,13 @@
 #include <godot_cpp/classes/voxel_tool.hpp>
 #include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
+#include <godot_cpp/classes/engine.hpp>
+
 #include "water_domain.h"
 
+
+#define DO_NOT_PLAY_IN_EDITOR if(Engine::get_singleton()->is_editor_hint()) return
+#define PRINT(message) UtilityFunctions::print(message)
 
 namespace godot {
 
