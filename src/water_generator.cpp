@@ -39,6 +39,7 @@ void WaterGenerator::_generate_block(const Ref<VoxelBuffer> &out_buffer, const V
 	
 	for (int y = 0; y < size.y; y++) {
 		if (origin_in_voxels.y + y > 0) break;
+		if (origin_in_voxels.y + y < -3) break;
 
 		for (int x = 0; x < size.x; x++) {
 			for (int z = 0; z < size.z; z++) {

@@ -78,11 +78,12 @@ void WaterSimulation::_process(double delta) {
 	for (int i = active_domains.size() - 1; i >= 0; i--) {
 		update_domain(active_domains[i]);
 
-	// 	// if (active_domains[i]->stable) {
-	// 	// 	WaterDomain* stable_domain = active_domains[i];
-	// 	// 	active_domains.erase(active_domains.begin() + i);
-	// 	// 	delete stable_domain;
-	// 	// }
+		if (active_domains[i]->stable) {
+			WaterDomain* stable_domain = active_domains[i];
+			active_domains.erase(active_domains.begin() + i);
+			delete stable_domain;
+			PRINT("domain stable");
+		}
 	}
 }
 
@@ -95,6 +96,8 @@ void WaterSimulation::update_domain(WaterDomain* domain) {
 	PRINT("update domain" + domain->size);
 
 	const int CHANNEL = VoxelBuffer::CHANNEL_SDF;
+
+	domain->stable = true;
 
 	for (int y = 1; y < domain->size.y; y++) {
 		for (int x = 0; x < domain->size.x; x++) {
@@ -121,6 +124,7 @@ void WaterSimulation::update_domain(WaterDomain* domain) {
 		}
 	}
 
+	// domain->water->ptr()->fill_f(1, CHANNEL);
 	water_tool.ptr()->paste(domain->origin, *domain->water, 1 << CHANNEL);
 
 	PRINT("pasted");
