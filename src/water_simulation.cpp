@@ -73,7 +73,7 @@ void WaterSimulation::_process(double delta) {
 	last_step_time = current_time;
 
 
-	PRINT("process");
+	// PRINT("Process, active domains: " + active_domains.size());
 
 	for (int i = active_domains.size() - 1; i >= 0; i--) {
 		update_domain(active_domains[i]);
@@ -82,7 +82,8 @@ void WaterSimulation::_process(double delta) {
 			WaterDomain* stable_domain = active_domains[i];
 			active_domains.erase(active_domains.begin() + i);
 			delete stable_domain;
-			PRINT("domain stable");
+
+			PRINT("Domain stable");
 		}
 	}
 }
@@ -92,8 +93,6 @@ bool WaterSimulation::voxel_is_empty(float voxel) {
 }
 
 void WaterSimulation::update_domain(WaterDomain* domain) {
-
-	PRINT("update domain" + domain->size);
 
 	const int CHANNEL = VoxelBuffer::CHANNEL_SDF;
 
@@ -110,8 +109,8 @@ void WaterSimulation::update_domain(WaterDomain* domain) {
 						float water_voxel_down = domain->water->ptr()->get_voxel_f(x, y - 1, z, CHANNEL);
 
 						if (voxel_is_empty(water_voxel_down)) {
-							domain->water->ptr()->set_voxel_f(0, x, y, z, CHANNEL);
-							domain->water->ptr()->set_voxel_f(-1, y - 1, z, CHANNEL);
+							domain->water->ptr()->set_voxel_f(1.0, x, y, z, CHANNEL);
+							domain->water->ptr()->set_voxel_f(-1.0, x, y - 1, z, CHANNEL);
 
 							if (domain->stable) {
 								domain->stable = false;
@@ -127,14 +126,10 @@ void WaterSimulation::update_domain(WaterDomain* domain) {
 	// domain->water->ptr()->fill_f(1, CHANNEL);
 	water_tool.ptr()->paste(domain->origin, *domain->water, 1 << CHANNEL);
 
-	PRINT("pasted");
-
 }
 
 
 void WaterSimulation::update_water(Vector3i origin, Vector3i size) {
-
-	PRINT("Update water start");
 
 	const int CHANNEL_MASK = 1 << VoxelBuffer::CHANNEL_SDF;
 
@@ -147,18 +142,11 @@ void WaterSimulation::update_water(Vector3i origin, Vector3i size) {
 	Ref<VoxelBuffer>* ref_terrain_buffer = new Ref<VoxelBuffer>(terrain_buffer);
 	Ref<VoxelBuffer>* ref_water_buffer = new Ref<VoxelBuffer>(water_buffer);
 
-	PRINT("Created buffers");
-
 	terrain_tool.ptr()->copy(origin, *ref_terrain_buffer, CHANNEL_MASK);
 	water_tool.ptr()->copy(origin, *ref_water_buffer, CHANNEL_MASK);
 
-	PRINT("Copied buffers");
-
 	WaterDomain* water_domain = new WaterDomain(origin, ref_water_buffer, ref_terrain_buffer);
 	active_domains.push_back(water_domain);
-
-	PRINT("Created and pushed water domain");
-
 
 	update_simulation = true;
 }
