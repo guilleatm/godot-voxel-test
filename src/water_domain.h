@@ -21,15 +21,16 @@ public:
     Vector3i origin;
     Vector3i size;
 
-    Ref<VoxelBuffer> water;
-    Ref<VoxelBuffer> terrain;
+    Ref<VoxelBuffer>* water;
+    Ref<VoxelBuffer>* terrain;
 
     bool stable = false;
 
     // WaterDomain();
-    // ~WaterDomain();
     
-    WaterDomain(Vector3i origin, const Ref<VoxelBuffer>& _water, const Ref<VoxelBuffer>& _terrain);
+    WaterDomain(Vector3i origin, Ref<VoxelBuffer>* _water, Ref<VoxelBuffer>* _terrain);
+    ~WaterDomain();
+
 
 
 

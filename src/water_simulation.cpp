@@ -9,7 +9,9 @@ WaterSimulation::WaterSimulation() {
 }
 
 WaterSimulation::~WaterSimulation() {
-
+	for (int i = 0; i < active_domains.size(); i++) {
+		delete active_domains[i];
+	}
 }
 
 
@@ -73,15 +75,15 @@ void WaterSimulation::_process(double delta) {
 
 	PRINT("process");
 
-	// for (int i = active_domains.size() - 1; i >= 0; i--) {
-	// 	update_domain(active_domains[i]);
+	for (int i = active_domains.size() - 1; i >= 0; i--) {
+		update_domain(active_domains[i]);
 
 	// 	// if (active_domains[i]->stable) {
 	// 	// 	WaterDomain* stable_domain = active_domains[i];
 	// 	// 	active_domains.erase(active_domains.begin() + i);
 	// 	// 	delete stable_domain;
 	// 	// }
-	// }
+	}
 }
 
 bool WaterSimulation::voxel_is_empty(float voxel) {
@@ -90,27 +92,23 @@ bool WaterSimulation::voxel_is_empty(float voxel) {
 
 void WaterSimulation::update_domain(WaterDomain* domain) {
 
-	PRINT("update domain");
+	PRINT("update domain" + domain->size);
 
 	const int CHANNEL = VoxelBuffer::CHANNEL_SDF;
 
 	for (int y = 1; y < domain->size.y; y++) {
 		for (int x = 0; x < domain->size.x; x++) {
 			for (int z = 0; z < domain->size.z; z++) {
-				float water_voxel = domain->water.ptr()->get_voxel_f(x, y, z, CHANNEL);
-				float terrain_voxel_down = domain->terrain.ptr()->get_voxel_f(x, y - 1, z, CHANNEL);
-
-				PRINT("accessed to voxels");
+				float water_voxel = domain->water->ptr()->get_voxel_f(x, y, z, CHANNEL);
+				float terrain_voxel_down = domain->terrain->ptr()->get_voxel_f(x, y - 1, z, CHANNEL);
 
 				if (water_voxel < 0) {
 					if (voxel_is_empty(terrain_voxel_down)) {
-						float water_voxel_down = domain->water->get_voxel_f(x, y - 1, z, CHANNEL);
+						float water_voxel_down = domain->water->ptr()->get_voxel_f(x, y - 1, z, CHANNEL);
 
 						if (voxel_is_empty(water_voxel_down)) {
-							domain->water->set_voxel_f(0, x, y, z, CHANNEL);
-							domain->water->set_voxel_f(-1, y - 1, z, CHANNEL);
-
-							PRINT("set voxels");
+							domain->water->ptr()->set_voxel_f(0, x, y, z, CHANNEL);
+							domain->water->ptr()->set_voxel_f(-1, y - 1, z, CHANNEL);
 
 							if (domain->stable) {
 								domain->stable = false;
@@ -123,7 +121,7 @@ void WaterSimulation::update_domain(WaterDomain* domain) {
 		}
 	}
 
-	water_tool.ptr()->paste(domain->origin, domain->water, 1 << CHANNEL);
+	water_tool.ptr()->paste(domain->origin, *domain->water, 1 << CHANNEL);
 
 	PRINT("pasted");
 
@@ -136,19 +134,19 @@ void WaterSimulation::update_water(Vector3i origin, Vector3i size) {
 
 	const int CHANNEL_MASK = 1 << VoxelBuffer::CHANNEL_SDF;
 
-	VoxelBuffer terrain_buffer = VoxelBuffer();
-	terrain_buffer.create(size.x, size.y, size.z);
+	VoxelBuffer* terrain_buffer = new VoxelBuffer();
+	terrain_buffer->create(size.x, size.y, size.z);
 
-	VoxelBuffer water_buffer = VoxelBuffer();
-	water_buffer.create(size.x, size.y, size.z);
+	VoxelBuffer* water_buffer = new VoxelBuffer();
+	water_buffer->create(size.x, size.y, size.z);
 
-	Ref<VoxelBuffer> ref_terrain_buffer = Ref<VoxelBuffer>(&terrain_buffer);
-	Ref<VoxelBuffer> ref_water_buffer = Ref<VoxelBuffer>(&water_buffer);
+	Ref<VoxelBuffer>* ref_terrain_buffer = new Ref<VoxelBuffer>(terrain_buffer);
+	Ref<VoxelBuffer>* ref_water_buffer = new Ref<VoxelBuffer>(water_buffer);
 
 	PRINT("Created buffers");
 
-	terrain_tool.ptr()->copy(origin, ref_terrain_buffer, CHANNEL_MASK);
-	water_tool.ptr()->copy(origin, ref_water_buffer, CHANNEL_MASK);
+	terrain_tool.ptr()->copy(origin, *ref_terrain_buffer, CHANNEL_MASK);
+	water_tool.ptr()->copy(origin, *ref_water_buffer, CHANNEL_MASK);
 
 	PRINT("Copied buffers");
 
