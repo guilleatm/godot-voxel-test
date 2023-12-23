@@ -9,6 +9,7 @@
         "*.tcc": "cpp",
         "string_view": "cpp",
         "functional": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "array": "cpp"
     }
 }

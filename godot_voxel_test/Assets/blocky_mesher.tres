@@ -3,6 +3,7 @@
 [sub_resource type="VoxelBlockyModelEmpty" id="VoxelBlockyModelEmpty_n52jq"]
 
 [sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_al8g4"]
+color = Color(0, 0.278431, 0.94902, 1)
 
 [sub_resource type="VoxelBlockyLibrary" id="VoxelBlockyLibrary_vsxbu"]
 models = Array[VoxelBlockyModel]([SubResource("VoxelBlockyModelEmpty_n52jq"), SubResource("VoxelBlockyModelCube_al8g4")])

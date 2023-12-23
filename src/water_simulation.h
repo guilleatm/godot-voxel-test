@@ -9,6 +9,7 @@
 #include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/classes/engine.hpp>
+#include <math.h>
 
 #include "water_domain.h"
 

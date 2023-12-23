@@ -13,6 +13,7 @@ class WaterDomain {
 
 private:
 
+
 protected:
     // static void _bind_methods();
 
@@ -24,15 +25,17 @@ public:
     Ref<VoxelBuffer>* water;
     Ref<VoxelBuffer>* terrain;
 
-    bool stable = false;
+    int stable_levels = 0;
 
     // WaterDomain();
     
     WaterDomain(Vector3i origin, Ref<VoxelBuffer>* _water, Ref<VoxelBuffer>* _terrain);
     ~WaterDomain();
 
+    std::array<float, 4> get_surr(const VoxelBuffer &water_read_buffer, int x, int y, int z, int channel) const;
+    // void spread(const VoxelBuffer &water_read_buffer, int x, int y, int z, int channel);
 
-
+    bool is_stable();
 
 };
 

@@ -78,7 +78,7 @@ void WaterSimulation::_process(double delta) {
 	for (int i = active_domains.size() - 1; i >= 0; i--) {
 		update_domain(active_domains[i]);
 
-		if (active_domains[i]->stable) {
+		if (active_domains[i]->is_stable()) {
 			WaterDomain* stable_domain = active_domains[i];
 			active_domains.erase(active_domains.begin() + i);
 			delete stable_domain;
@@ -95,31 +95,87 @@ bool WaterSimulation::voxel_is_empty(float voxel) {
 void WaterSimulation::update_domain(WaterDomain* domain) {
 
 	const int CHANNEL = VoxelBuffer::CHANNEL_SDF;
+	const float SPREAD_AMOUNT = 0.2;
 
-	domain->stable = true;
 
-	for (int y = 1; y < domain->size.y; y++) {
-		for (int x = 0; x < domain->size.x; x++) {
-			for (int z = 0; z < domain->size.z; z++) {
-				float water_voxel = domain->water->ptr()->get_voxel_f(x, y, z, CHANNEL);
+	VoxelBuffer water_read_buffer = VoxelBuffer();
+	water_read_buffer.create(domain->size.x, domain->size.y, domain->size.z);
+	water_read_buffer.copy_channel_from(*domain->water, CHANNEL);
+
+	
+	int voxels_per_level = (domain->size.x - 2) * (domain->size.z - 2);
+
+	for (int y = Math::max(1, domain->stable_levels); y < domain->size.y; y++)
+	{
+		int stable_voxels_count = 0;
+
+		for (int x = 1; x < domain->size.x - 1; x++)
+		{
+			for (int z = 1; z < domain->size.z - 1; z++)
+			{
+				
+				float water_voxel = water_read_buffer.get_voxel_f(x, y, z, CHANNEL);
+
+				// If voxel has no water continue
+				if (water_voxel >= 0) continue;
+
 				float terrain_voxel_down = domain->terrain->ptr()->get_voxel_f(x, y - 1, z, CHANNEL);
+				float water_voxel_down = water_read_buffer.get_voxel_f(x, y - 1, z, CHANNEL); // can go deeper
 
-				if (water_voxel < 0) {
-					if (voxel_is_empty(terrain_voxel_down)) {
-						float water_voxel_down = domain->water->ptr()->get_voxel_f(x, y - 1, z, CHANNEL);
 
-						if (voxel_is_empty(water_voxel_down)) {
-							domain->water->ptr()->set_voxel_f(1.0, x, y, z, CHANNEL);
-							domain->water->ptr()->set_voxel_f(-1.0, x, y - 1, z, CHANNEL);
+				if (terrain_voxel_down < 0)
+				{
+					// Spread
+					std::array<float, 4> surr = domain->get_surr(water_read_buffer, x, y, z, CHANNEL);
 
-							if (domain->stable) {
-								domain->stable = false;
-							}
-						}
+					domain->water->ptr()->set_voxel_f((water_voxel - surr[0]) * SPREAD_AMOUNT, x + 1, y, z, CHANNEL);
+					domain->water->ptr()->set_voxel_f((water_voxel - surr[1]) * SPREAD_AMOUNT, x, y, z + 1, CHANNEL);
+					domain->water->ptr()->set_voxel_f((water_voxel - surr[2]) * SPREAD_AMOUNT, x - 1, y, z, CHANNEL);
+					domain->water->ptr()->set_voxel_f((water_voxel - surr[3]) * SPREAD_AMOUNT, x, y, z - 1, CHANNEL);
+
+					if (water_voxel < -.9)
+					{
+						stable_voxels_count += 1;
 					}
 				}
+				else if (water_voxel_down < 0)
+				{
+					// Transfer down + spread
 
+					// Amount of water to transfer to fill the voxel
+					float transferred_water = 1.0 + water_voxel_down; // Water voxel down is negative
+					//water_voxel += transferred_water; // ??
+
+					domain->water->ptr()->set_voxel_f(water_voxel + transferred_water, x, y, z, CHANNEL);
+					domain->water->ptr()->set_voxel_f(-1.0, x, y - 1, z, CHANNEL); // -1.0 = my_water(water_voxel_down) - transferred_water
+					
+					std::array<float, 4> surr = domain->get_surr(water_read_buffer, x, y, z, CHANNEL);
+
+					domain->water->ptr()->set_voxel_f((water_voxel - surr[0]) * SPREAD_AMOUNT, x + 1, y, z, CHANNEL);
+					domain->water->ptr()->set_voxel_f((water_voxel - surr[1]) * SPREAD_AMOUNT, x, y, z + 1, CHANNEL);
+					domain->water->ptr()->set_voxel_f((water_voxel - surr[2]) * SPREAD_AMOUNT, x - 1, y, z, CHANNEL);
+					domain->water->ptr()->set_voxel_f((water_voxel - surr[3]) * SPREAD_AMOUNT, x, y, z - 1, CHANNEL);
+
+					if (water_voxel < -.9 && water_voxel_down < -.9)
+					{
+						stable_voxels_count += 1;
+					}
+				}
+				else
+				{
+					// Transfer down
+
+					// Transfer all water
+					domain->water->ptr()->set_voxel_f(1.0, x, y, z, CHANNEL);
+					domain->water->ptr()->set_voxel_f(water_voxel, x, y - 1, z, CHANNEL);
+				}
 			}
+		}
+
+		if (stable_voxels_count == voxels_per_level)
+		{
+			domain->stable_levels += 1;
+			PRINT("STABLE LEVEL");
 		}
 	}
 
