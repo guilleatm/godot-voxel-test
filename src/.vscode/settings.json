@@ -8,6 +8,7 @@
     "files.associations": {
         "*.tcc": "cpp",
         "string_view": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "vector": "cpp"
     }
 }

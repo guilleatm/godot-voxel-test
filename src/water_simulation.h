@@ -1,11 +1,14 @@
 #ifndef WATER_SIMULATION_H
 #define WATER_SIMULATION_H
 
+#include <vector>
 #include <godot_cpp/classes/voxel_generator_script.hpp>
 #include <godot_cpp/classes/voxel_buffer.hpp>
 #include <godot_cpp/classes/voxel_terrain.hpp>
 #include <godot_cpp/classes/voxel_tool.hpp>
 #include <godot_cpp/classes/time.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
+#include "water_domain.h"
 
 
 namespace godot {
@@ -21,10 +24,20 @@ private:
 	VoxelTerrain* terrain;
 	VoxelTerrain* water;
 
+	Ref<VoxelTool> terrain_tool;
+	Ref<VoxelTool> water_tool;
+
 	Time* time;
 	int simulation_timestep_mseconds;
 
-	int last_step_time;
+	int last_step_time = 0;
+
+	bool update_simulation;
+
+	std::vector<WaterDomain*> active_domains;
+
+	void update_domain(WaterDomain* domain);
+	bool voxel_is_empty(float voxel);
 
 protected:
 	static void _bind_methods();
@@ -45,7 +58,7 @@ public:
 	void _ready() override;
 	void _process(double delta) override;
 
-
+	void update_water(Vector3i origin, Vector3i size);
 
 	// void m_create(VoxelTerrain* terrain);
 

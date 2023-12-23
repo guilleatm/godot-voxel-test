@@ -2,6 +2,7 @@
 
 #include "water_generator.h"
 #include "water_simulation.h"
+// #include "water_domain.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
@@ -16,7 +17,7 @@ void initialize_example_module(ModuleInitializationLevel p_level) {
 
 	ClassDB::register_class<WaterGenerator>();
 	ClassDB::register_class<WaterSimulation>();
-
+	// ClassDB::register_class<WaterDomain>();
 }
 
 void uninitialize_example_module(ModuleInitializationLevel p_level) {
