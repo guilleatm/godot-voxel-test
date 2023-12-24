@@ -23,7 +23,8 @@ shader_parameter/u_transition_mask = null
 shader_parameter/albedo_color = Color(0.152941, 0.482353, 0.372549, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pcwu4"]
-albedo_color = Color(0.427451, 0.360784, 0.835294, 1)
+transparency = 1
+albedo_color = Color(0.427451, 0.360784, 0.835294, 0.784314)
 
 [node name="Node3D" type="Node3D"]
 
@@ -89,7 +90,7 @@ texture = ExtResource("8_uq1x1")
 [node name="WaterSimulation" type="WaterSimulation" parent="."]
 Terrain = NodePath("../terrain")
 Water = NodePath("../water")
-"Simulation Timestep (miliseconds)" = 30
+"Simulation Timestep (miliseconds)" = 1000
 
 [node name="terrain" type="VoxelTerrain" parent="."]
 generator = ExtResource("1_4rl5a")
@@ -105,3 +106,5 @@ generate_collisions = false
 material_override = SubResource("StandardMaterial3D_pcwu4")
 script = ExtResource("9_xcei2")
 terrain = NodePath("../terrain")
+
+[connection signal="on_area_edited" from="terrain" to="water" method="start_debug_draw"]

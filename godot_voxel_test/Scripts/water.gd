@@ -8,6 +8,10 @@ const channel_mask: int = 1 << channel;
 var water_vt: VoxelTool;
 var terrain_vt: VoxelTool;
 
+var origin: Vector3i;
+var size: Vector3i;
+var draw: bool = false;
+
 func _ready():
 
 	var water_generator = WaterGenerator.new();
@@ -22,35 +26,56 @@ func _ready():
 
 
 func _process(delta):
+	
+	if (draw):
+		debug_draw()
 	pass
 	
 
-func is_there_water(area_origin: Vector3i, area_size: Vector3i) -> Array:
-
+func debug_draw() -> void:
 	var water_buffer: VoxelBuffer = VoxelBuffer.new();
-	water_buffer.create(area_size.x, area_size.y, area_size.z);
-	water_vt.copy(area_origin, water_buffer, channel_mask);
+	water_buffer.create(size.x, size.y, size.z);
+	water_vt.copy(origin, water_buffer, channel_mask);
 	
-	for y in area_size.y:
-		for x in area_size.x:
-			for z in area_size.z:
-				if (water_buffer.get_voxel_f(x, y, z, channel) < 0):
-					return [true, Vector3i(x, y, z)];
-					
-	return [false, Vector3i.ZERO]; 
+	for y in size.y:
+		for x in size.x:
+			for z in size.z:
+				var water_voxel: float = water_buffer.get_voxel_f(x, y, z, channel);
+				if (water_voxel < 0):
+					DebugDraw3D.draw_sphere(origin + Vector3i(x, y, z), .1);
+
+func start_debug_draw(o: Vector3i, s: Vector3) -> void:
+	origin = o;
+	size = s;
+	draw = true;
+
+#func is_there_water(area_origin: Vector3i, area_size: Vector3i) -> Array:
+#
+#	var water_buffer: VoxelBuffer = VoxelBuffer.new();
+#	water_buffer.create(area_size.x, area_size.y, area_size.z);
+#	water_vt.copy(area_origin, water_buffer, channel_mask);
+#
+#	for y in area_size.y:
+#		for x in area_size.x:
+#			for z in area_size.z:
+#				if (water_buffer.get_voxel_f(x, y, z, channel) < 0):
+#					return [true, Vector3i(x, y, z)];
+#
+#	return [false, Vector3i.ZERO]; 
 
 
 
 	
 func on_area_edited(area_origin: Vector3i, area_size: Vector3i) -> void:
+	pass
 	
-	var is_there_water_result: Array = is_there_water(area_origin - Vector3i.ONE, area_size + Vector3i.ONE * 2);
-	
-	if (is_there_water_result[0]):
-		print("water in " + str(is_there_water_result[1]));
-	else:
-		print("no water");
-	
+#	var is_there_water_result: Array = is_there_water(area_origin - Vector3i.ONE, area_size + Vector3i.ONE * 2);
+#
+#	if (is_there_water_result[0]):
+#		print("water in " + str(is_there_water_result[1]));
+#	else:
+#		print("no water");
+#
 #	var water_buffer: VoxelBuffer = VoxelBuffer.new();
 #	water_buffer.create(area_size.x, area_size.y, area_size.z);
 #	water_vt.copy(area_origin, water_buffer, channel_mask);
@@ -71,3 +96,7 @@ func on_area_edited(area_origin: Vector3i, area_size: Vector3i) -> void:
 #					water_buffer.set_voxel_f(-1.0, x, y, z, channel);
 #
 #	water_vt.paste(area_origin, water_buffer, channel);
+
+
+func _on_terrain_on_area_edited(area_origin, area_size):
+	pass # Replace with function body.
