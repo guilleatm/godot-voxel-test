@@ -10,7 +10,8 @@ var terrain_vt: VoxelTool;
 
 var origin: Vector3i;
 var size: Vector3i;
-var draw: bool = false;
+@export var draw: bool;
+var draw_started: bool = false;
 
 func _ready():
 
@@ -27,7 +28,7 @@ func _ready():
 
 func _process(delta):
 	
-	if (draw):
+	if (draw_started and draw):
 		debug_draw()
 	pass
 	
@@ -47,7 +48,7 @@ func debug_draw() -> void:
 func start_debug_draw(o: Vector3i, s: Vector3) -> void:
 	origin = o;
 	size = s;
-	draw = true;
+	draw_started = true;
 
 #func is_there_water(area_origin: Vector3i, area_size: Vector3i) -> Array:
 #
