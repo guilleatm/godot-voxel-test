@@ -64,7 +64,6 @@ void WaterSimulation::_process(double delta) {
 
 	DO_NOT_PLAY_IN_EDITOR;
 
-
 	int current_time = time->get_ticks_msec();
 	int elapsed_time = current_time - last_step_time;
 
@@ -73,24 +72,32 @@ void WaterSimulation::_process(double delta) {
 	last_step_time = current_time;
 
 
-	// PRINT("Process, active domains: " + active_domains.size());
+	for (int i = active_domains.size() - 1; i >= 0; i--)
+	{
+		active_domains[i]->update();
 
-	for (int i = active_domains.size() - 1; i >= 0; i--) {
-		update_domain(active_domains[i]);
-
-		if (active_domains[i]->is_stable()) {
+		if (active_domains[i]->is_stable())
+		{
 			WaterDomain* stable_domain = active_domains[i];
 			active_domains.erase(active_domains.begin() + i);
 			delete stable_domain;
-
-			PRINT("Domain stable");
 		}
 	}
+
+
+	// for (int i = active_domains.size() - 1; i >= 0; i--) {
+	// 	update_domain(active_domains[i]);
+
+	// 	if (active_domains[i]->is_stable()) {
+	// 		WaterDomain* stable_domain = active_domains[i];
+	// 		active_domains.erase(active_domains.begin() + i);
+	// 		delete stable_domain;
+
+	// 		PRINT("Domain stable");
+	// 	}
+	// }
 }
 
-bool WaterSimulation::voxel_is_empty(float voxel) {
-	return voxel >= 0;
-}
 
 void WaterSimulation::update_domain(WaterDomain* domain) {
 
@@ -187,7 +194,7 @@ void WaterSimulation::update_domain(WaterDomain* domain) {
 
 void WaterSimulation::update_water(Vector3i origin, Vector3i size) {
 
-	const int CHANNEL_MASK = 1 << VoxelBuffer::CHANNEL_SDF;
+	const int CH_SDF_MASK = 1 << CH_SDF;
 
 	VoxelBuffer* terrain_buffer = new VoxelBuffer();
 	terrain_buffer->create(size.x, size.y, size.z);
@@ -198,8 +205,8 @@ void WaterSimulation::update_water(Vector3i origin, Vector3i size) {
 	Ref<VoxelBuffer>* ref_terrain_buffer = new Ref<VoxelBuffer>(terrain_buffer);
 	Ref<VoxelBuffer>* ref_water_buffer = new Ref<VoxelBuffer>(water_buffer);
 
-	terrain_tool.ptr()->copy(origin, *ref_terrain_buffer, CHANNEL_MASK);
-	water_tool.ptr()->copy(origin, *ref_water_buffer, CHANNEL_MASK);
+	terrain_tool.ptr()->copy(origin, *ref_terrain_buffer, CH_SDF_MASK);
+	water_tool.ptr()->copy(origin, *ref_water_buffer, CH_SDF_MASK);
 
 	WaterDomain* water_domain = new WaterDomain(origin, ref_water_buffer, ref_terrain_buffer);
 	active_domains.push_back(water_domain);
@@ -207,8 +214,8 @@ void WaterSimulation::update_water(Vector3i origin, Vector3i size) {
 	update_simulation = true;
 }
 
-void WaterSimulation::_bind_methods() {
-	
+void WaterSimulation::_bind_methods()
+{	
 	// Terrain getter / setter
 	ClassDB::bind_method(D_METHOD("get_terrain"), &WaterSimulation::get_terrain);
 	ClassDB::bind_method(D_METHOD("set_terrain", "terrain"), &WaterSimulation::set_terrain);

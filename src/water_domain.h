@@ -35,7 +35,14 @@ public:
     std::array<float, 4> get_surr(const VoxelBuffer &water_read_buffer, int x, int y, int z, int channel) const;
     // void spread(const VoxelBuffer &water_read_buffer, int x, int y, int z, int channel);
 
+
+    // GOOD
+
     bool is_stable();
+    bool update();
+
+
+
 
 };
 
