@@ -54,7 +54,7 @@ void WaterSimulation::_ready() {
 	time = Time::get_singleton();
 
 
-	Callable callable = Callable(this, "update_water");
+	Callable callable = Callable(this, "add_domain");
 	terrain->connect("on_area_edited", callable);
 
 
@@ -193,7 +193,7 @@ void WaterSimulation::update_domain(WaterDomain* domain) {
 }
 
 
-void WaterSimulation::update_water(Vector3i origin, Vector3i size)
+void WaterSimulation::add_domain(Vector3i origin, Vector3i size)
 {
 	WaterDomain* water_domain = new WaterDomain(origin, size, water_tool, terrain_tool);
 	active_domains.push_back(water_domain);
@@ -214,7 +214,7 @@ void WaterSimulation::_bind_methods()
 	ClassDB::bind_method(D_METHOD("set_simulation_timestep", "simulation_timestep"), &WaterSimulation::set_simulation_timestep);
 
 
-	ClassDB::bind_method(D_METHOD("update_water", "origin", "size"), &WaterSimulation::update_water);
+	ClassDB::bind_method(D_METHOD("add_domain", "origin", "size"), &WaterSimulation::add_domain);
 
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "Terrain"), "set_terrain", "get_terrain");
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "Water"), "set_water", "get_water");

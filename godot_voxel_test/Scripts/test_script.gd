@@ -1,19 +1,21 @@
 class_name global extends Node3D
 
 
-@export var terrain : VoxelTerrain
+@export var terrain : Terrain
 @export var water : VoxelTerrain
 @export var camera : Camera3D
 
 #const water_generator = preload("res://Scripts/water_generator.gd");
 
 var vt: VoxelTool
+var water_vt: VoxelTool
 var buffer : VoxelBuffer = VoxelBuffer.new();
 var buffer_size : int;
 var raycast_distance : float = 10_000.0;
 
 func _ready():
-	vt = terrain.get_voxel_tool()
+	vt = terrain.get_voxel_tool();
+	water_vt = water.get_voxel_tool();
 
 	vt.channel = VoxelBuffer.CHANNEL_SDF # overriding this in my_remove
 
@@ -40,8 +42,18 @@ func _unhandled_input(event):
 			create_water()
 
 func create_water() -> void:
-	pass;
-#	water.generator = water_generator.new();
+	var forward : Vector3 = -camera.basis.z.normalized();
+	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, raycast_distance);
+
+	if (raycast_result != null):
+		water_vt.channel = VoxelBuffer.CHANNEL_SDF;
+		water_vt.mode = VoxelTool.MODE_ADD;
+
+		water_vt.do_sphere(Vector3(raycast_result.position) + Vector3.UP * buffer_size / 2, buffer_size / 2);
+
+		var k : int = 10;
+		var o: Vector3i = (raycast_result.position - Vector3i.UP * k);
+		terrain._on_area_edited(o, Vector3i.ONE * buffer_size + Vector3i.UP * k);
 
 
 func my_remove() -> void:

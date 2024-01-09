@@ -1,4 +1,5 @@
 extends VoxelTerrain
+class_name Terrain
 
 signal on_area_edited(area_origin: Vector3i, area_size: Vector3i);
 

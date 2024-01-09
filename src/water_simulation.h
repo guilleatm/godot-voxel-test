@@ -65,14 +65,14 @@ public:
 	void _ready() override;
 	void _process(double delta) override;
 
-	void update_water(Vector3i origin, Vector3i size);
+	void add_domain(Vector3i origin, Vector3i size);
 
 
 
 	// GOOD
 
-	void add_domain();
-	void remove_domain();
+	// void add_domain();
+	// void remove_domain();
 };
 
 }

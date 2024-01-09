@@ -48,7 +48,7 @@ void WaterDomain::update()
 {
 	PRINT("Update domain: " + origin);
 
-	out_water_buffer.ptr()->copy_channel_from(read_water_buffer, CH_SDF);
+	out_water_buffer->copy_channel_from(read_water_buffer, CH_SDF);
 
 	for (int y = 1; y < size.y; y++)
 	{
@@ -56,30 +56,50 @@ void WaterDomain::update()
 		{
 			for (int z = 1; z < size.z - 1; z++)
 			{
-				float water_voxel = read_water_buffer.ptr()->get_voxel_f(x, y, z, CH_SDF);
+				float water_voxel = out_water_buffer->get_voxel_f(x, y, z, CH_SDF);
 
 				// No water
 				if (water_voxel >= 0) continue;
 
-				float terrain_voxel_down = read_terrain_buffer.ptr()->get_voxel_f(x, y - 1, z, CH_SDF);
-				// float water_voxel_down = water_read_buffer.get_voxel_f(x, y - 1, z, CHANNEL);
+				float terrain_voxel_down = read_terrain_buffer->get_voxel_f(x, y - 1, z, CH_SDF);
+				float water_voxel_down = out_water_buffer->get_voxel_f(x, y - 1, z, CH_SDF);
 
-				if (terrain_voxel_down < 0)
+
+
+				if (terrain_voxel_down >= 0 && water_voxel_down >= 0)
 				{
+					out_water_buffer->set_voxel_f(1.0f, x, y, z, CH_SDF);
+					out_water_buffer->set_voxel_f(-1.0f, x, y - 1, z, CH_SDF);
+				}
+
+
+
+				// // Has terrain voxel down
+				// if (terrain_voxel_down < 0)
+				// {
 					
-				}
-				// No terrain down
-				else
-				{
-					// Transfer all water
-					out_water_buffer.ptr()->set_voxel_f(1.0f, x, y, z, CH_SDF);
-					out_water_buffer.ptr()->set_voxel_f(-1.0f, x, y - 1, z, CH_SDF);
-				}
+				// }
+				// else
+				// {
+					
+				// }
+
+				// // Has water voxel down
+				// if (water_voxel_down < 0)
+				// {
+
+				// }
+				// else
+				// {
+				// 	out_water_buffer->set_voxel_f(1.0f, x, y, z, CH_SDF);
+				// 	out_water_buffer->set_voxel_f(-1.0f, x, y - 1, z, CH_SDF);
+				// }
+
 	        }
 	    }
 	}
 
-	read_water_buffer.ptr()->copy_channel_from(out_water_buffer, CH_SDF);
+	read_water_buffer->copy_channel_from(out_water_buffer, CH_SDF);
 }
 
 

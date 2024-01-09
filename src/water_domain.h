@@ -29,6 +29,7 @@ public:
     Vector3i origin;
     Vector3i size;
 
+    // #O pot ser que no siga necessari, si el juntem en el water_read_buffer se estalviem 2 còpies
     Ref<VoxelBuffer> out_water_buffer;
     
     WaterDomain(Vector3i _origin, Vector3i _size, const Ref<VoxelTool> &water_tool, const Ref<VoxelTool> &terrain_tool);
