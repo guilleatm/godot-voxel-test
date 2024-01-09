@@ -76,7 +76,7 @@ void WaterSimulation::_process(double delta) {
 	{
 		WaterDomain* domain = active_domains[i];
 		domain->update();
-		water_tool.ptr()->paste(domain->origin, domain->out_water_buffer, 1 << CH_SDF);
+		water_tool.ptr()->paste(domain->origin, domain->water_buffer, 1 << CH_SDF);
 
 		if (active_domains[i]->is_stable())
 		{

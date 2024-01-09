@@ -17,17 +17,17 @@ WaterDomain::WaterDomain(Vector3i _origin, Vector3i _size, const Ref<VoxelTool> 
 	VoxelBuffer* _terrain_buffer = new VoxelBuffer();
 	_terrain_buffer->create(size.x, size.y, size.z);
 
-	VoxelBuffer* _out_buffer = new VoxelBuffer();
-	_out_buffer->create(size.x, size.y, size.z);
+	// VoxelBuffer* _out_buffer = new VoxelBuffer();
+	// _out_buffer->create(size.x, size.y, size.z);
 
 
-	read_water_buffer = Ref<VoxelBuffer>(_water_buffer);
-	read_terrain_buffer = Ref<VoxelBuffer>(_terrain_buffer);
-	out_water_buffer = Ref<VoxelBuffer>(_out_buffer);
+	water_buffer = Ref<VoxelBuffer>(_water_buffer);
+	terrain_buffer = Ref<VoxelBuffer>(_terrain_buffer);
+	// out_water_buffer = Ref<VoxelBuffer>(_out_buffer);
 
 
-	water_tool.ptr()->copy(_origin, read_water_buffer, CH_SDF_MASK);
-	terrain_tool.ptr()->copy(_origin, read_terrain_buffer, CH_SDF_MASK);
+	water_tool.ptr()->copy(_origin, water_buffer, CH_SDF_MASK);
+	terrain_tool.ptr()->copy(_origin, terrain_buffer, CH_SDF_MASK);
 
 }
 
@@ -48,28 +48,26 @@ void WaterDomain::update()
 {
 	PRINT("Update domain: " + origin);
 
-	out_water_buffer->copy_channel_from(read_water_buffer, CH_SDF);
-
 	for (int y = 1; y < size.y; y++)
 	{
 		for (int x = 1; x < size.x - 1; x++)
 		{
 			for (int z = 1; z < size.z - 1; z++)
 			{
-				float water_voxel = out_water_buffer->get_voxel_f(x, y, z, CH_SDF);
+				float water_voxel = water_buffer->get_voxel_f(x, y, z, CH_SDF);
 
 				// No water
 				if (water_voxel >= 0) continue;
 
-				float terrain_voxel_down = read_terrain_buffer->get_voxel_f(x, y - 1, z, CH_SDF);
-				float water_voxel_down = out_water_buffer->get_voxel_f(x, y - 1, z, CH_SDF);
+				float terrain_voxel_down = terrain_buffer->get_voxel_f(x, y - 1, z, CH_SDF);
+				float water_voxel_down = water_buffer->get_voxel_f(x, y - 1, z, CH_SDF);
 
 
 
 				if (terrain_voxel_down >= 0 && water_voxel_down >= 0)
 				{
-					out_water_buffer->set_voxel_f(1.0f, x, y, z, CH_SDF);
-					out_water_buffer->set_voxel_f(-1.0f, x, y - 1, z, CH_SDF);
+					water_buffer->set_voxel_f(1.0f, x, y, z, CH_SDF);
+					water_buffer->set_voxel_f(-1.0f, x, y - 1, z, CH_SDF);
 				}
 
 
@@ -98,8 +96,6 @@ void WaterDomain::update()
 	        }
 	    }
 	}
-
-	read_water_buffer->copy_channel_from(out_water_buffer, CH_SDF);
 }
 
 

@@ -17,14 +17,15 @@ private:
 
     int stable_levels = 0;
 
-    Ref<VoxelBuffer> read_water_buffer;
-    Ref<VoxelBuffer> read_terrain_buffer;
+    Ref<VoxelBuffer> terrain_buffer;
 
 
 protected:
     // static void _bind_methods();
 
 public:
+
+    Ref<VoxelBuffer> water_buffer;
 
     Vector3i origin;
     Vector3i size;
