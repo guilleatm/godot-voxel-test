@@ -101,6 +101,8 @@ void WaterDomain::update()
 
 				float sdf_terrain_voxel_down = terrain_buffer->get_voxel_f(x, y - 1, z, CH_SDF);
 				uint8_t water_voxel_down = water_buffer->get_voxel(x, y - 1, z, CH_WATER);
+				float sdf_water_voxel_down = water_buffer->get_voxel_f(x, y - 1, z, CH_SDF);
+
 
 				// Has terrain voxel down
 				if (sdf_terrain_voxel_down < 0)
@@ -112,15 +114,21 @@ void WaterDomain::update()
 					// Has water voxel down
 					if (water_voxel_down > 0)
 					{
-						uint8_t q = MIN(WATER_VOXEL_RESOLUTION - water_voxel_down, water_voxel);
+						uint8_t q = 0;//MIN(WATER_VOXEL_RESOLUTION - water_voxel_down, water_voxel);
 						uint8_t r = water_voxel - q;
-						
 
 						water_buffer->set_voxel(r, x, y, z, CH_WATER);
-						water_buffer->set_voxel(q, x, y - 1, z, CH_WATER);
+						water_buffer->set_voxel(water_voxel_down + q, x, y - 1, z, CH_WATER);
 
-						water_buffer->set_voxel_f((float) WATER_VOXEL_RESOLUTION / r, x, y, z, CH_SDF);
-						water_buffer->set_voxel_f((float) WATER_VOXEL_RESOLUTION / q, x, y - 1, z, CH_SDF);
+
+						float _q = -q / (float) WATER_VOXEL_RESOLUTION;
+						float _r = -r / (float) WATER_VOXEL_RESOLUTION;
+
+						if (q == 0) _q = 0;
+						if (r == 0) _r = 1.0f;
+
+						water_buffer->set_voxel_f(_r , x, y, z, CH_SDF);
+						water_buffer->set_voxel_f(sdf_water_voxel_down - _q, x, y - 1, z, CH_SDF);
 
 
 						// float s = r / 5;
