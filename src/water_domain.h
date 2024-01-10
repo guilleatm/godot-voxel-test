@@ -19,6 +19,8 @@ private:
 
     Ref<VoxelBuffer> terrain_buffer;
 
+    void prepare_buffer();
+
 
 protected:
     // static void _bind_methods();

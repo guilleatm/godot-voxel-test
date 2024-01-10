@@ -6,6 +6,7 @@
 #include <godot_cpp/classes/voxel_buffer.hpp>
 #include <godot_cpp/classes/voxel_terrain.hpp>
 #include <godot_cpp/classes/voxel_tool.hpp>
+#include "global.h"
 
 namespace godot {
 

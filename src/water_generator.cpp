@@ -25,8 +25,10 @@ void WaterGenerator::_generate_block(const Ref<VoxelBuffer> &out_buffer, const V
 	if (lod != 0) return;
 	
 	if (origin_in_voxels.y > 0) return;
-	
-	Vector3i size = out_buffer.ptr()->get_size();
+
+	out_buffer->set_channel_depth(CH_WATER, godot::VoxelBuffer::Depth::DEPTH_8_BIT);
+
+	Vector3i size = out_buffer->get_size();
 
 	// We create a VoxelBuffer each time to avoid using mutex.
 
@@ -46,9 +48,11 @@ void WaterGenerator::_generate_block(const Ref<VoxelBuffer> &out_buffer, const V
 				float terrain_voxel = terrain_buffer.get_voxel_f(x, y, z, channel);
 				
 				if (terrain_voxel > 0) {
-					out_buffer.ptr()->set_voxel_f(-1.0, x, y, z, channel);
+					out_buffer->set_voxel_f(-1.0, x, y, z, channel);
+					out_buffer->set_voxel(WATER_VOXEL_RESOLUTION, x, y, z);
 				} else {
-					out_buffer.ptr()->set_voxel_f(1.0, x, y, z, channel);
+					out_buffer->set_voxel_f(1.0, x, y, z, channel);
+					out_buffer->set_voxel(WATER_VOXEL_RESOLUTION, x, y, z);
 				}
 			}
 		}

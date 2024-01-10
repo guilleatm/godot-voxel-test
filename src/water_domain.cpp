@@ -7,12 +7,14 @@ using namespace godot;
 WaterDomain::WaterDomain(Vector3i _origin, Vector3i _size, const Ref<VoxelTool> &water_tool, const Ref<VoxelTool> &terrain_tool)
 {
 	const int CH_SDF_MASK = 1 << CH_SDF;
+	const int CH_WATER_MASK = 1 << CH_WATER;
 
 	origin = _origin;
 	size = _size;
 
 	VoxelBuffer* _water_buffer = new VoxelBuffer();
 	_water_buffer->create(size.x, size.y, size.z);
+	_water_buffer->set_channel_depth(CH_WATER, godot::VoxelBuffer::Depth::DEPTH_8_BIT);
 
 	VoxelBuffer* _terrain_buffer = new VoxelBuffer();
 	_terrain_buffer->create(size.x, size.y, size.z);
@@ -26,9 +28,11 @@ WaterDomain::WaterDomain(Vector3i _origin, Vector3i _size, const Ref<VoxelTool> 
 	// out_water_buffer = Ref<VoxelBuffer>(_out_buffer);
 
 
-	water_tool.ptr()->copy(_origin, water_buffer, CH_SDF_MASK);
-	terrain_tool.ptr()->copy(_origin, terrain_buffer, CH_SDF_MASK);
+	water_tool->copy(_origin, water_buffer, CH_SDF_MASK);
+	water_tool->copy(_origin, water_buffer, CH_WATER_MASK);
+	terrain_tool->copy(_origin, terrain_buffer, CH_SDF_MASK);
 
+	prepare_buffer();
 }
 
 WaterDomain::~WaterDomain() {
@@ -43,10 +47,45 @@ WaterDomain::~WaterDomain() {
 	// delete terrain;
 }
 
+void WaterDomain::prepare_buffer()
+{
+	Vector3i size = water_buffer->get_size();
+
+	for (int y = 0; y < size.y; y++)
+	{
+		for (int x = 0; x < size.x; x++)
+		{
+			for (int z = 0; z < size.z; z++)
+			{
+				float sdf_water_voxel = water_buffer->get_voxel_f(x, y, z, CH_SDF);
+
+				uint8_t v;
+				if (sdf_water_voxel < 0)
+				{
+					v = WATER_VOXEL_RESOLUTION;
+				}
+				else
+				{
+					v = 0;
+				}
+
+				water_buffer->set_voxel(v, x, y, z, CH_WATER);
+			}
+		}
+	}
+}
+
+
 
 void WaterDomain::update()
 {
 	PRINT("Update domain: " + origin);
+
+	// VoxelBuffer buffer = VoxelBuffer();
+	// buffer.create(size.x, size.y, size.z);
+//	buffer.set_channel_depth(CH_WATER, godot::VoxelBuffer::Depth::DEPTH_8_BIT);
+	
+
 
 	for (int y = 1; y < size.y; y++)
 	{
@@ -54,45 +93,53 @@ void WaterDomain::update()
 		{
 			for (int z = 1; z < size.z - 1; z++)
 			{
-				float water_voxel = water_buffer->get_voxel_f(x, y, z, CH_SDF);
+				float sdf_water_voxel = water_buffer->get_voxel_f(x, y, z, CH_SDF);
+				uint8_t water_voxel = water_buffer->get_voxel(x, y, z, CH_WATER);
 
 				// No water
-				if (water_voxel >= 0) continue;
+				if (water_voxel == 0) continue;
 
-				float terrain_voxel_down = terrain_buffer->get_voxel_f(x, y - 1, z, CH_SDF);
-				float water_voxel_down = water_buffer->get_voxel_f(x, y - 1, z, CH_SDF);
+				float sdf_terrain_voxel_down = terrain_buffer->get_voxel_f(x, y - 1, z, CH_SDF);
+				uint8_t water_voxel_down = water_buffer->get_voxel(x, y - 1, z, CH_WATER);
 
-
-
-				if (terrain_voxel_down >= 0 && water_voxel_down >= 0)
+				// Has terrain voxel down
+				if (sdf_terrain_voxel_down < 0)
 				{
-					water_buffer->set_voxel_f(1.0f, x, y, z, CH_SDF);
-					water_buffer->set_voxel_f(-1.0f, x, y - 1, z, CH_SDF);
+					continue;
 				}
+				else
+				{
+					// Has water voxel down
+					if (water_voxel_down > 0)
+					{
+						uint8_t q = MIN(WATER_VOXEL_RESOLUTION - water_voxel_down, water_voxel);
+						uint8_t r = water_voxel - q;
+						
+
+						water_buffer->set_voxel(r, x, y, z, CH_WATER);
+						water_buffer->set_voxel(q, x, y - 1, z, CH_WATER);
+
+						water_buffer->set_voxel_f((float) WATER_VOXEL_RESOLUTION / r, x, y, z, CH_SDF);
+						water_buffer->set_voxel_f((float) WATER_VOXEL_RESOLUTION / q, x, y - 1, z, CH_SDF);
 
 
+						// float s = r / 5;
+						// buffer.set_voxel_f(s, x, y, z);
+						// buffer.set_voxel_f(s, x + 1, y, z);
+						// buffer.set_voxel_f(s, x - 1, y, z);
+						// buffer.set_voxel_f(s, x, y, z + 1);
+						// buffer.set_voxel_f(s, x, y, z - 1);
+					}
+					else
+					{					
 
-				// // Has terrain voxel down
-				// if (terrain_voxel_down < 0)
-				// {
-					
-				// }
-				// else
-				// {
-					
-				// }
+						water_buffer->set_voxel(0, x, y, z, CH_WATER);
+						water_buffer->set_voxel(water_voxel, x, y - 1, z, CH_WATER);
 
-				// // Has water voxel down
-				// if (water_voxel_down < 0)
-				// {
-
-				// }
-				// else
-				// {
-				// 	out_water_buffer->set_voxel_f(1.0f, x, y, z, CH_SDF);
-				// 	out_water_buffer->set_voxel_f(-1.0f, x, y - 1, z, CH_SDF);
-				// }
-
+						water_buffer->set_voxel_f(1.0f, x, y, z, CH_SDF);
+						water_buffer->set_voxel_f(-1.0f, x, y - 1, z, CH_SDF);
+					}
+				}
 	        }
 	    }
 	}

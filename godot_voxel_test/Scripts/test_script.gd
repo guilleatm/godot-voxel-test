@@ -49,11 +49,18 @@ func create_water() -> void:
 		water_vt.channel = VoxelBuffer.CHANNEL_SDF;
 		water_vt.mode = VoxelTool.MODE_ADD;
 
-		water_vt.do_sphere(Vector3(raycast_result.position) + Vector3.UP * buffer_size / 2, buffer_size / 2);
+		#water_vt.do_sphere(Vector3(raycast_result.position) + Vector3.UP * buffer_size / 2, buffer_size / 2);
+		
+		var sphere_position = Vector3(raycast_result.position) + Vector3.UP * 20;
+		water_vt.do_sphere(sphere_position, 8);
 
-		var k : int = 10;
-		var o: Vector3i = (raycast_result.position - Vector3i.UP * k);
-		terrain._on_area_edited(o, Vector3i.ONE * buffer_size + Vector3i.UP * k);
+		var domain_origin: Vector3i = raycast_result.position + (-Vector3i.RIGHT + Vector3i.UP + Vector3i.FORWARD) * 8;
+		var domain_size: Vector3i = Vector3i.ONE * 20;
+		terrain._on_area_edited(domain_origin, domain_size);
+
+#		var k : int = 10;
+#		var o: Vector3i = (raycast_result.position - Vector3i.UP * k);
+#		terrain._on_area_edited(o, Vector3i.ONE * buffer_size + Vector3i.UP * k);
 
 
 func my_remove() -> void:
