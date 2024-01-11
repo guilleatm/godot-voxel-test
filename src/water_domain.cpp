@@ -81,9 +81,9 @@ void WaterDomain::update()
 {
 	PRINT("Update domain: " + origin);
 
-	// VoxelBuffer buffer = VoxelBuffer();
-	// buffer.create(size.x, size.y, size.z);
-//	buffer.set_channel_depth(CH_WATER, godot::VoxelBuffer::Depth::DEPTH_8_BIT);
+	VoxelBuffer buffer = VoxelBuffer();
+	buffer.create(size.x, size.y, size.z);
+	buffer.set_channel_depth(CH_WATER, godot::VoxelBuffer::Depth::DEPTH_8_BIT);
 	
 
 
@@ -93,6 +93,23 @@ void WaterDomain::update()
 		{
 			for (int z = 1; z < size.z - 1; z++)
 			{
+
+				// uint8_t water_voxel = water_buffer->get_voxel(x, y, z, CH_WATER);
+
+				// if (water_voxel == 0)
+				// {
+				// 	water_buffer->set_voxel_f(1.0f , x, y, z, CH_SDF);
+				// }
+				// else
+				// {
+				// 	float value = -water_voxel / (float) WATER_VOXEL_RESOLUTION;
+
+				// 	water_buffer->set_voxel_f(value, x, y, z, CH_SDF);
+				// }
+
+
+
+
 				float sdf_water_voxel = water_buffer->get_voxel_f(x, y, z, CH_SDF);
 				uint8_t water_voxel = water_buffer->get_voxel(x, y, z, CH_WATER);
 
@@ -114,7 +131,7 @@ void WaterDomain::update()
 					// Has water voxel down
 					if (water_voxel_down > 0)
 					{
-						uint8_t q = 0;//MIN(WATER_VOXEL_RESOLUTION - water_voxel_down, water_voxel);
+						uint8_t q = MIN(WATER_VOXEL_RESOLUTION - water_voxel_down, water_voxel);
 						uint8_t r = water_voxel - q;
 
 						water_buffer->set_voxel(r, x, y, z, CH_WATER);
@@ -131,12 +148,42 @@ void WaterDomain::update()
 						water_buffer->set_voxel_f(sdf_water_voxel_down - _q, x, y - 1, z, CH_SDF);
 
 
-						// float s = r / 5;
-						// buffer.set_voxel_f(s, x, y, z);
-						// buffer.set_voxel_f(s, x + 1, y, z);
-						// buffer.set_voxel_f(s, x - 1, y, z);
-						// buffer.set_voxel_f(s, x, y, z + 1);
-						// buffer.set_voxel_f(s, x, y, z - 1);
+						uint8_t s = r / 5;
+
+						uint8_t water_right = water_buffer->get_voxel(x + 1, y, z, CH_WATER);
+						uint8_t water_left = water_buffer->get_voxel(x - 1, y, z, CH_WATER);
+						uint8_t water_front = water_buffer->get_voxel(x, y, z + 1, CH_WATER);
+						uint8_t water_back = water_buffer->get_voxel(x, y, z - 1, CH_WATER);
+
+						water_right = MIN(water_right + s, WATER_VOXEL_RESOLUTION);
+						water_left = MIN(water_left + s, WATER_VOXEL_RESOLUTION);
+						water_front = MIN(water_front + s, WATER_VOXEL_RESOLUTION);
+						water_back = MIN(water_back + s, WATER_VOXEL_RESOLUTION);
+
+						water_buffer->set_voxel(r, x, y, z, CH_WATER);
+						water_buffer->set_voxel(water_right, x + 1, y, z, CH_WATER);
+						water_buffer->set_voxel(water_left, x - 1, y, z, CH_WATER);
+						water_buffer->set_voxel(water_front, x, y, z + 1, CH_WATER);
+						water_buffer->set_voxel(water_back, x, y, z - 1, CH_WATER);
+
+
+
+
+						// uint8_t s = r / 5;
+						// water_buffer->set_voxel(s, x, y, z, CH_WATER);
+						// water_buffer->set_voxel(s, x + 1, y, z, CH_WATER);
+						// water_buffer->set_voxel(s, x - 1, y, z, CH_WATER);
+						// water_buffer->set_voxel(s, x, y, z + 1, CH_WATER);
+						// water_buffer->set_voxel(s, x, y, z - 1, CH_WATER);
+
+
+						// uint8_t s = r / 5;
+						
+						// buffer.set_voxel(	buffer.get_voxel(x, y, z, CH_WATER)			+ s, x, y, z, CH_WATER);
+						// buffer.set_voxel(	buffer.get_voxel(x + 1, y, z, CH_WATER)		+ s, x + 1, y, z, CH_WATER);
+						// buffer.set_voxel(	buffer.get_voxel(x - 1, y, z, CH_WATER)		+ s, x - 1, y, z, CH_WATER);
+						// buffer.set_voxel(	buffer.get_voxel(x, y, z + 1, CH_WATER)		+ s, x, y, z + 1, CH_WATER);
+						// buffer.set_voxel(	buffer.get_voxel(x, y, z - 1, CH_WATER)		+ s, x, y, z - 1, CH_WATER);
 					}
 					else
 					{					
