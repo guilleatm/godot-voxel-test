@@ -18,8 +18,9 @@ private:
     int stable_levels = 0;
 
     Ref<VoxelBuffer> terrain_buffer;
+    Ref<VoxelBuffer> buffer;
 
-    void prepare_buffer();
+    void prepare_water_buffer();
 
 
 protected:
