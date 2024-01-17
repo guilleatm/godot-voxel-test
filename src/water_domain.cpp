@@ -31,7 +31,7 @@ WaterDomain::WaterDomain(Vector3i _origin, Vector3i _size, const Ref<VoxelTool> 
 	water_tool->copy(_origin, water_buffer, CH_SDF_MASK);
 	water_tool->copy(_origin, water_buffer, CH_WATER_MASK);
 	terrain_tool->copy(_origin, terrain_buffer, CH_SDF_MASK);
-	
+
 
 	prepare_water_buffer();
 }
@@ -81,6 +81,8 @@ void WaterDomain::update()
 {
 	PRINT("Update domain: " + origin);
 
+	buffer->fill((uint8_t) 0, CH_WATER);
+
 	for (int y = 0; y < size.y; y++)
 	{
 		for (int x = 0; x < size.x; x++)
@@ -89,23 +91,18 @@ void WaterDomain::update()
 			{
 				uint8_t water_voxel = water_buffer->get_voxel(x, y, z, CH_WATER);
 
-
-				// float value = (water_voxel - 125) / (float) WATER_VOXEL_RESOLUTION;
-				// water_buffer->set_voxel_f(value, x, y, z, CH_SDF);
-
-				// if (water_voxel == 0)
-				// {
-				// 	water_buffer->set_voxel_f(1.0f , x, y, z, CH_SDF);
-				// }
-				// else
-				// {
-				// 	float value = -water_voxel / (float) WATER_VOXEL_RESOLUTION;
-				// 	water_buffer->set_voxel_f(value, x, y, z, CH_SDF);
-				// }
+				if (water_voxel == 0)
+				{
+					water_buffer->set_voxel_f(1.0f , x, y, z, CH_SDF);
+				}
+				else
+				{
+					float value = -water_voxel / (float) WATER_VOXEL_RESOLUTION;
+					water_buffer->set_voxel_f(value, x, y, z, CH_SDF);
+				}
 
 
-
-				const int PARTS = 5;
+				const uint8_t PARTS = 5;
 				uint8_t _7 = water_voxel / PARTS;
 				uint8_t _7r = water_voxel % PARTS;
 
@@ -138,8 +135,6 @@ void WaterDomain::update()
 					buffer->set_voxel(value + _7, x, y, z - 1, CH_WATER);
 				}
 
-
-
 			}
 	    }
 	}
@@ -148,7 +143,7 @@ void WaterDomain::update()
 	// Vector3i max = size - Vector3i(1, 0, 1);
 
 	water_buffer->copy_channel_from(buffer, CH_WATER);
-	buffer->fill((uint8_t) 0, CH_WATER);
+	// buffer->fill((uint8_t) 0, CH_WATER);
 	//buffer->fill_area((uint8_t) 0, min, max, CH_WATER);
 
 }
@@ -166,7 +161,7 @@ void WaterDomain::update()
 //	2 - X - 0
 //		3
 std::array<float, 4> WaterDomain::get_surr(const VoxelBuffer &water_read_buffer, int x, int y, int z, int channel) const {
-	
+
 	std::array<float, 4> _surr;
 
 	_surr[0] = water_read_buffer.get_voxel_f(x + 1, y, z, channel);
@@ -183,7 +178,7 @@ std::array<float, 4> WaterDomain::get_surr(const VoxelBuffer &water_read_buffer,
 // 	const float SPREAD_AMOUNT = 0.2;
 
 // 	float water_voxel = water->ptr()->get_voxel_f(x, y, z, channel);
-	
+
 // 	std::array<float, 4> surr = get_surr(water_read_buffer, x, y, z, channel);
 
 // 	water->ptr()->set_voxel_f((water_voxel - surr[0]) * SPREAD_AMOUNT, x + 1, y, z, channel);
