@@ -7,6 +7,7 @@
 #include <godot_cpp/classes/voxel_tool.hpp>
 #include "global.h"
 #include <godot_cpp/core/math.hpp>
+#include <string>
 
 namespace godot {
 
@@ -18,8 +19,9 @@ private:
     int stable_levels = 0;
 
     Ref<VoxelBuffer> terrain_buffer;
+    Ref<VoxelBuffer> buffer;
 
-    void prepare_buffer();
+    void prepare_water_buffer();
 
 
 protected:
