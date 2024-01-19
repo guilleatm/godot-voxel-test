@@ -93,14 +93,33 @@ void WaterDomain::update()
 
 				if (water_voxel == 0)
 				{
-					water_buffer->set_voxel_f(1.0f , x, y, z, CH_SDF);
+					water_buffer->set_voxel_f(.1f , x, y, z, CH_SDF);
 				}
 				else
 				{
-					float value = -water_voxel / (float) WATER_VOXEL_RESOLUTION;
-					water_buffer->set_voxel_f(value, x, y, z, CH_SDF);
+					float n = Math::inverse_lerp(0.0f, (float) WATER_VOXEL_RESOLUTION, (float) water_voxel);
+					water_buffer->set_voxel_f(-n, x, y, z, CH_SDF);
 				}
 
+				// if (water_voxel == 0)
+				// {
+				// 	water_buffer->set_voxel_f(1.0f , x, y, z, CH_SDF);
+				// }
+				// else
+				// {
+				// 	float value = -water_voxel / (float) WATER_VOXEL_RESOLUTION;
+				// 	water_buffer->set_voxel_f(value, x, y, z, CH_SDF);
+				// }
+
+				Vector3i v = Vector3i(x, y, z);
+
+				if (water_voxel != 0)
+				{
+					PRINT(v);
+					PRINT(water_voxel);
+				}
+
+				// overflow = (PARTS - 1) + (RES / PARTS) * (PARTS - 1)
 
 				const uint8_t PARTS = 5;
 				uint8_t _7 = water_voxel / PARTS;
@@ -134,7 +153,6 @@ void WaterDomain::update()
 					value = buffer->get_voxel(x, y, z - 1, CH_WATER);
 					buffer->set_voxel(value + _7, x, y, z - 1, CH_WATER);
 				}
-
 			}
 	    }
 	}

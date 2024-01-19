@@ -40,6 +40,8 @@ func _unhandled_input(event):
 			my_remove()
 		if event.pressed and event.keycode == KEY_N:
 			create_water()
+		if event.pressed and event.keycode == KEY_P:
+			create_point()
 
 func create_water() -> void:
 	var forward : Vector3 = -camera.basis.z.normalized();
@@ -62,6 +64,26 @@ func create_water() -> void:
 #		var o: Vector3i = (raycast_result.position - Vector3i.UP * k);
 #		terrain._on_area_edited(o, Vector3i.ONE * buffer_size + Vector3i.UP * k);
 
+func create_point() -> void:
+	var forward : Vector3 = -camera.basis.z.normalized();
+	var raycast_result : VoxelRaycastResult = vt.raycast(global_position, forward, raycast_distance);
+
+	if (raycast_result != null):
+		water_vt.channel = VoxelBuffer.CHANNEL_SDF;
+		water_vt.mode = VoxelTool.MODE_ADD;
+
+		#water_vt.do_sphere(Vector3(raycast_result.position) + Vector3.UP * buffer_size / 2, buffer_size / 2);
+		
+		water_vt.do_point(raycast_result.position + Vector3i.UP * 10);
+		water_vt.do_point(raycast_result.position + Vector3i.UP * 9);
+#
+#		var sphere_position = Vector3(raycast_result.position) + Vector3.UP * 20;
+#		water_vt.do_sphere(sphere_position, 8);
+		var size = 5;
+		var domain_origin: Vector3i = raycast_result.position + (-Vector3i.RIGHT + Vector3i.UP + Vector3i.FORWARD) * size;
+		var domain_size: Vector3i = Vector3i.ONE * size * 2;
+		terrain._on_area_edited(domain_origin, domain_size);
+	
 
 func my_remove() -> void:
 	var forward : Vector3 = -camera.basis.z.normalized();

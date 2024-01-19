@@ -90,7 +90,6 @@ texture = ExtResource("8_uq1x1")
 [node name="WaterSimulation" type="WaterSimulation" parent="."]
 Terrain = NodePath("../terrain")
 Water = NodePath("../water")
-"Simulation Timestep (miliseconds)" = 5000
 
 [node name="terrain" type="VoxelTerrain" parent="."]
 generator = ExtResource("1_4rl5a")
@@ -106,6 +105,5 @@ generate_collisions = false
 material_override = SubResource("StandardMaterial3D_pcwu4")
 script = ExtResource("9_xcei2")
 terrain = NodePath("../terrain")
-draw = true
 
 [connection signal="on_area_edited" from="terrain" to="water" method="start_debug_draw"]

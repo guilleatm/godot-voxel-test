@@ -7,6 +7,7 @@
 #include <godot_cpp/classes/voxel_tool.hpp>
 #include "global.h"
 #include <godot_cpp/core/math.hpp>
+#include <string>
 
 namespace godot {
 

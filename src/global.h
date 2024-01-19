@@ -16,7 +16,7 @@ namespace godot
 
 	const float EPSILON = 0.0001f;
 
-	const uint8_t WATER_VOXEL_RESOLUTION = 5;
+	const uint8_t WATER_VOXEL_RESOLUTION = 250;
 
 }
 

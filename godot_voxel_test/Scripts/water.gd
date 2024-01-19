@@ -52,25 +52,30 @@ func draw_voxel(water_buffer: VoxelBuffer, x: int, y: int, z: int) -> void:
 	
 	var water_voxel: int = water_buffer.get_voxel(x, y, z, ch_water);
 
+	if (water_voxel == 0): return;
+	
 	var color: Color;
-	if (water_voxel == 0):
-		color = Color.BLACK;
-	elif (water_voxel == 5):
-		color = Color.NAVY_BLUE;
-	elif (0 < water_voxel and water_voxel < 5):
-		color = Color.BURLYWOOD;
-	else:
+	var n: float = 0.1;
+	
+	if (water_voxel > 250):
 		color = Color.RED;
+	else:
+		n += inverse_lerp(float(0), float(255), water_voxel);
+		color = Color.DARK_BLUE
 
-
-#	var water_voxel_sdf: float = water_buffer.get_voxel_f(x, y, z, ch_sdf);
-#
-#	if (water_voxel_sdf < 0):
-#		color = Color.GREEN;
-#	else:
+#	var color: Color;
+#	if (water_voxel == 0):
+#		return;
 #		color = Color.BLACK;
-		
-	DebugDraw3D.draw_sphere(origin + Vector3i(x, y, z), .1, color);
+#	elif (water_voxel == 5):
+#		color = Color.NAVY_BLUE;
+#	elif (0 < water_voxel and water_voxel < 5):
+#		color = Color.WEB_PURPLE;
+#	else:
+#		color = Color.RED;
+
+
+	DebugDraw3D.draw_sphere(origin + Vector3i(x, y, z), n, color);
 
 func start_debug_draw(o: Vector3i, s: Vector3) -> void:
 	origin = o;
