@@ -77,103 +77,110 @@ void WaterDomain::prepare_water_buffer()
 }
 
 
+
 void WaterDomain::update()
 {
-	PRINT("Update domain: " + origin);
-
-	buffer->fill((uint8_t) 0, CH_WATER);
-
-	for (int y = 0; y < size.y; y++)
-	{
-		for (int x = 0; x < size.x; x++)
-		{
-			for (int z = 0; z < size.z; z++)
-			{
-				uint8_t water_voxel = water_buffer->get_voxel(x, y, z, CH_WATER);
-
-				// uint8_t mod_water_voxel = water_voxel - std::min(AIR_VOXEL_RESOLUTION, water_voxel);
-
-
-				if (water_voxel == 0)
-				{
-					water_buffer->set_voxel_f(.1f , x, y, z, CH_SDF);
-				}
-				else
-				{
-					float n = Math::inverse_lerp(0.0f, (float) WATER_VOXEL_RESOLUTION, (float) water_voxel);
-					water_buffer->set_voxel_f(-n, x, y, z, CH_SDF);
-				}
-
-				// if (water_voxel == 0)
-				// {
-				// 	water_buffer->set_voxel_f(1.0f , x, y, z, CH_SDF);
-				// }
-				// else
-				// {
-				// 	float value = -water_voxel / (float) WATER_VOXEL_RESOLUTION;
-				// 	water_buffer->set_voxel_f(value, x, y, z, CH_SDF);
-				// }
-
-				Vector3i v = Vector3i(x, y, z);
-
-				// if (water_voxel != 0)
-				// {
-				// 	PRINT(v);
-				// 	PRINT(water_voxel);
-				// }
-
-				// overflow = (PARTS - 1) + (RES / PARTS) * (PARTS - 1)
-
-				const uint8_t PARTS = 5;
-				uint8_t _7 = water_voxel / PARTS;
-				uint8_t _7r = water_voxel % PARTS;
-
-				uint8_t value;
-
-				value = buffer->get_voxel(x, y, z, CH_WATER);
-				buffer->set_voxel(value + _7r + _7, x, y, z, CH_WATER);
-
-				if (x != size.x - 1)
-				{
-					value = buffer->get_voxel(x + 1, y, z, CH_WATER);
-					buffer->set_voxel(value + _7, x + 1, y, z, CH_WATER);
-				}
-
-				if (x != 0)
-				{
-					value = buffer->get_voxel(x - 1, y, z, CH_WATER);
-					buffer->set_voxel(value + _7, x - 1, y, z, CH_WATER);
-				}
-
-				if (z != size.z - 1)
-				{
-					value = buffer->get_voxel(x, y, z + 1, CH_WATER);
-					buffer->set_voxel(value + _7, x, y, z + 1, CH_WATER);
-				}
-
-				if (z != 0)
-				{
-					value = buffer->get_voxel(x, y, z - 1, CH_WATER);
-					buffer->set_voxel(value + _7, x, y, z - 1, CH_WATER);
-				}
-
-				if (y != 0)
-				{
-					value = buffer->get_voxel(x, y - 1, z, CH_WATER);
-					buffer->set_voxel(value + _7, x, y - 1, z, CH_WATER);
-				}
-			}
-	    }
-	}
-
-	// Vector3i min = Vector3i(0, 1, 0);
-	// Vector3i max = size - Vector3i(1, 0, 1);
-
-	water_buffer->copy_channel_from(buffer, CH_WATER);
-	// buffer->fill((uint8_t) 0, CH_WATER);
-	//buffer->fill_area((uint8_t) 0, min, max, CH_WATER);
-
+	
 }
+
+
+// void WaterDomain::update()
+// {
+// 	PRINT("Update domain: " + origin);
+
+// 	buffer->fill((uint8_t) 0, CH_WATER);
+
+// 	for (int y = 0; y < size.y; y++)
+// 	{
+// 		for (int x = 0; x < size.x; x++)
+// 		{
+// 			for (int z = 0; z < size.z; z++)
+// 			{
+// 				uint8_t water_voxel = water_buffer->get_voxel(x, y, z, CH_WATER);
+
+// 				// uint8_t mod_water_voxel = water_voxel - std::min(AIR_VOXEL_RESOLUTION, water_voxel);
+
+
+// 				if (water_voxel == 0)
+// 				{
+// 					water_buffer->set_voxel_f(.1f , x, y, z, CH_SDF);
+// 				}
+// 				else
+// 				{
+// 					float n = Math::inverse_lerp(0.0f, (float) WATER_VOXEL_RESOLUTION, (float) water_voxel);
+// 					water_buffer->set_voxel_f(-n, x, y, z, CH_SDF);
+// 				}
+
+// 				// if (water_voxel == 0)
+// 				// {
+// 				// 	water_buffer->set_voxel_f(1.0f , x, y, z, CH_SDF);
+// 				// }
+// 				// else
+// 				// {
+// 				// 	float value = -water_voxel / (float) WATER_VOXEL_RESOLUTION;
+// 				// 	water_buffer->set_voxel_f(value, x, y, z, CH_SDF);
+// 				// }
+
+// 				Vector3i v = Vector3i(x, y, z);
+
+// 				// if (water_voxel != 0)
+// 				// {
+// 				// 	PRINT(v);
+// 				// 	PRINT(water_voxel);
+// 				// }
+
+// 				// overflow = (PARTS - 1) + (RES / PARTS) * (PARTS - 1)
+
+// 				const uint8_t PARTS = 5;
+// 				uint8_t _7 = water_voxel / PARTS;
+// 				uint8_t _7r = water_voxel % PARTS;
+
+// 				uint8_t value;
+
+// 				value = buffer->get_voxel(x, y, z, CH_WATER);
+// 				buffer->set_voxel(value + _7r + _7, x, y, z, CH_WATER);
+
+// 				if (x != size.x - 1)
+// 				{
+// 					value = buffer->get_voxel(x + 1, y, z, CH_WATER);
+// 					buffer->set_voxel(value + _7, x + 1, y, z, CH_WATER);
+// 				}
+
+// 				if (x != 0)
+// 				{
+// 					value = buffer->get_voxel(x - 1, y, z, CH_WATER);
+// 					buffer->set_voxel(value + _7, x - 1, y, z, CH_WATER);
+// 				}
+
+// 				if (z != size.z - 1)
+// 				{
+// 					value = buffer->get_voxel(x, y, z + 1, CH_WATER);
+// 					buffer->set_voxel(value + _7, x, y, z + 1, CH_WATER);
+// 				}
+
+// 				if (z != 0)
+// 				{
+// 					value = buffer->get_voxel(x, y, z - 1, CH_WATER);
+// 					buffer->set_voxel(value + _7, x, y, z - 1, CH_WATER);
+// 				}
+
+// 				if (y != 0)
+// 				{
+// 					value = buffer->get_voxel(x, y - 1, z, CH_WATER);
+// 					buffer->set_voxel(value + _7, x, y - 1, z, CH_WATER);
+// 				}
+// 			}
+// 	    }
+// 	}
+
+// 	// Vector3i min = Vector3i(0, 1, 0);
+// 	// Vector3i max = size - Vector3i(1, 0, 1);
+
+// 	water_buffer->copy_channel_from(buffer, CH_WATER);
+// 	// buffer->fill((uint8_t) 0, CH_WATER);
+// 	//buffer->fill_area((uint8_t) 0, min, max, CH_WATER);
+
+// }
 
 
 
