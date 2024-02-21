@@ -101,6 +101,7 @@ material_override = SubResource("ShaderMaterial_4xaoo")
 script = ExtResource("8_f0mcc")
 
 [node name="water" type="VoxelTerrain" parent="." node_paths=PackedStringArray("terrain")]
+visible = false
 mesher = ExtResource("2_hwu08")
 bounds = AABB(-96, -16, -96, 192, 112, 192)
 generate_collisions = false

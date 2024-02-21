@@ -76,8 +76,9 @@ func draw_voxel(water_buffer: VoxelBuffer, x: int, y: int, z: int) -> void:
 #	else:
 #		color = Color.RED;
 
-
-	DebugDraw3D.draw_sphere(origin + Vector3i(x, y, z), n * 10, color);
+	if (x == 0):
+		color = Color.RED
+	DebugDraw3D.draw_sphere(origin + Vector3i(x, y, z), .1, color);
 
 func start_debug_draw(o: Vector3i, s: Vector3) -> void:
 	origin = o;
@@ -104,34 +105,6 @@ func start_debug_draw(o: Vector3i, s: Vector3) -> void:
 func on_area_edited(area_origin: Vector3i, area_size: Vector3i) -> void:
 	pass
 	
-#	var is_there_water_result: Array = is_there_water(area_origin - Vector3i.ONE, area_size + Vector3i.ONE * 2);
-#
-#	if (is_there_water_result[0]):
-#		print("water in " + str(is_there_water_result[1]));
-#	else:
-#		print("no water");
-#
-#	var water_buffer: VoxelBuffer = VoxelBuffer.new();
-#	water_buffer.create(area_size.x, area_size.y, area_size.z);
-#	water_vt.copy(area_origin, water_buffer, channel_mask);
-#
-#
-#	var terrain_buffer: VoxelBuffer = VoxelBuffer.new();
-#	terrain_buffer.create(area_size.x, area_size.y, area_size.z);
-#	terrain_vt.copy(area_origin, terrain_buffer, channel_mask);
-#
-#	for y in area_size.y:
-#		if (area_origin.y + y > 0):
-#			break;
-#
-#		for x in area_size.x:
-#			for z in area_size.z:
-#				var terrain_voxel: float = terrain_buffer.get_voxel_f(x, y, z, channel);
-#				if (terrain_voxel < 0):
-#					water_buffer.set_voxel_f(-1.0, x, y, z, channel);
-#
-#	water_vt.paste(area_origin, water_buffer, channel);
-
 
 func _on_terrain_on_area_edited(area_origin, area_size):
 	pass # Replace with function body.

@@ -3,6 +3,17 @@
 
 using namespace godot;
 
+
+
+#define WATER 1
+#define NO_WATER 0
+
+#define HAS_TERRAIN(voxel) voxel < 0
+
+#define CONTINUE_IF(do_continue) if (do_continue) continue
+
+
+
 // update for independence, new here
 WaterDomain::WaterDomain(Vector3i _origin, Vector3i _size, const Ref<VoxelTool> &water_tool, const Ref<VoxelTool> &terrain_tool)
 {
@@ -24,13 +35,13 @@ WaterDomain::WaterDomain(Vector3i _origin, Vector3i _size, const Ref<VoxelTool> 
 	_buffer->set_channel_depth(CH_WATER, godot::VoxelBuffer::Depth::DEPTH_8_BIT);
 	_buffer->fill((uint8_t) 0, CH_WATER);
 
-	water_buffer = Ref<VoxelBuffer>(_water_buffer);
-	terrain_buffer = Ref<VoxelBuffer>(_terrain_buffer);
-	buffer = Ref<VoxelBuffer>(_buffer);
+	read_buffer_ptr = Ref<VoxelBuffer>(_water_buffer);
+	terrain_buffer_ptr = Ref<VoxelBuffer>(_terrain_buffer);
+	write_buffer_ptr = Ref<VoxelBuffer>(_buffer);
 
-	water_tool->copy(_origin, water_buffer, CH_SDF_MASK);
-	water_tool->copy(_origin, water_buffer, CH_WATER_MASK);
-	terrain_tool->copy(_origin, terrain_buffer, CH_SDF_MASK);
+	water_tool->copy(_origin, read_buffer_ptr, CH_SDF_MASK);
+	water_tool->copy(_origin, read_buffer_ptr, CH_WATER_MASK);
+	terrain_tool->copy(_origin, terrain_buffer_ptr, CH_SDF_MASK);
 
 
 	prepare_water_buffer();
@@ -50,7 +61,7 @@ WaterDomain::~WaterDomain() {
 
 void WaterDomain::prepare_water_buffer()
 {
-	Vector3i size = water_buffer->get_size();
+	Vector3i size = read_buffer_ptr->get_size();
 
 	for (int y = 0; y < size.y; y++)
 	{
@@ -58,19 +69,19 @@ void WaterDomain::prepare_water_buffer()
 		{
 			for (int z = 0; z < size.z; z++)
 			{
-				float sdf_water_voxel = water_buffer->get_voxel_f(x, y, z, CH_SDF);
+				float sdf_water_voxel = read_buffer_ptr->get_voxel_f(x, y, z, CH_SDF);
 
 				uint8_t v;
 				if (sdf_water_voxel < 0)
 				{
-					v = WATER_VOXEL_RESOLUTION;
+					v = 1; // WATER_VOXEL_RESOLUTIUON
 				}
 				else
 				{
 					v = 0;
 				}
 
-				water_buffer->set_voxel(v, x, y, z, CH_WATER);
+				read_buffer_ptr->set_voxel(v, x, y, z, CH_WATER);
 			}
 		}
 	}
@@ -78,10 +89,79 @@ void WaterDomain::prepare_water_buffer()
 
 
 
+bool WaterDomain::mod_voxel(int x, int y, int z)
+{
+
+	if (y < 0 || y == size.y ) return false;
+	if (x < 0 || x == size.x ) return false;
+	if (z < 0 || z == size.z ) return false;
+
+	uint8_t voxel = write_buffer_ptr->get_voxel(x, y, z, CH_WATER);
+
+	if (voxel == NO_WATER)
+	{
+		write_buffer_ptr->set_voxel(WATER, x, y, z, CH_WATER);
+		return true;
+	}
+	return false;
+}
+
+
+
 void WaterDomain::update()
 {
-	
+	write_buffer_ptr->fill((uint8_t) 0, CH_WATER);
+
+	for (int y = 0; y < size.y; y++)
+	{
+		for (int x = 0; x < size.x; x++)
+		{
+			for (int z = 0; z < size.z; z++)
+			{
+				uint8_t water_voxel = read_buffer_ptr->get_voxel(x, y, z, CH_WATER);
+
+				if (water_voxel == NO_WATER) continue;
+				// float terrain_voxel_down_sdf = terrain_buffer_ptr->get_voxel_f(x, y - 1, z, CH_SDF);
+
+
+
+				// down
+				CONTINUE_IF(mod_voxel(x, y - 1, z));
+
+				// down left
+				CONTINUE_IF(mod_voxel(x - 1, y - 1, z));
+				// down right
+				CONTINUE_IF(mod_voxel(x + 1, y - 1, z));
+
+				// down back
+				CONTINUE_IF(mod_voxel(x, y - 1, z - 1));
+				// down front
+				CONTINUE_IF(mod_voxel(x, y - 1, z + 1));
+
+				
+				// left
+				CONTINUE_IF(mod_voxel(x - 1, y, z));
+				// right
+				CONTINUE_IF(mod_voxel(x + 1, y, z));
+
+				// back
+				CONTINUE_IF(mod_voxel(x, y, z - 1));
+				// front
+				CONTINUE_IF(mod_voxel(x, y, z + 1));
+
+
+				write_buffer_ptr->set_voxel(WATER, x, y, z, CH_WATER);
+			}
+		}
+	}
+
+	read_buffer_ptr->copy_channel_from(write_buffer_ptr, CH_WATER);
 }
+
+
+
+
+
 
 
 // void WaterDomain::update()

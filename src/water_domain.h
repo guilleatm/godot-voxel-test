@@ -18,8 +18,8 @@ private:
 
     int stable_levels = 0;
 
-    Ref<VoxelBuffer> terrain_buffer;
-    Ref<VoxelBuffer> buffer;
+    Ref<VoxelBuffer> terrain_buffer_ptr;
+    Ref<VoxelBuffer> write_buffer_ptr;
 
     void prepare_water_buffer();
 
@@ -29,7 +29,7 @@ protected:
 
 public:
 
-    Ref<VoxelBuffer> water_buffer;
+    Ref<VoxelBuffer> read_buffer_ptr;
 
     Vector3i origin;
     Vector3i size;
@@ -39,6 +39,9 @@ public:
     
     WaterDomain(Vector3i _origin, Vector3i _size, const Ref<VoxelTool> &water_tool, const Ref<VoxelTool> &terrain_tool);
     ~WaterDomain();
+
+    bool mod_voxel(int x, int y, int z);
+
 
     std::array<float, 4> get_surr(const VoxelBuffer &water_read_buffer, int x, int y, int z, int channel) const;
     // void spread(const VoxelBuffer &water_read_buffer, int x, int y, int z, int channel);
