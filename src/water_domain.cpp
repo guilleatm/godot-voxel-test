@@ -91,6 +91,9 @@ void WaterDomain::update()
 			{
 				uint8_t water_voxel = water_buffer->get_voxel(x, y, z, CH_WATER);
 
+				// uint8_t mod_water_voxel = water_voxel - std::min(AIR_VOXEL_RESOLUTION, water_voxel);
+
+
 				if (water_voxel == 0)
 				{
 					water_buffer->set_voxel_f(.1f , x, y, z, CH_SDF);
@@ -113,11 +116,11 @@ void WaterDomain::update()
 
 				Vector3i v = Vector3i(x, y, z);
 
-				if (water_voxel != 0)
-				{
-					PRINT(v);
-					PRINT(water_voxel);
-				}
+				// if (water_voxel != 0)
+				// {
+				// 	PRINT(v);
+				// 	PRINT(water_voxel);
+				// }
 
 				// overflow = (PARTS - 1) + (RES / PARTS) * (PARTS - 1)
 
@@ -152,6 +155,12 @@ void WaterDomain::update()
 				{
 					value = buffer->get_voxel(x, y, z - 1, CH_WATER);
 					buffer->set_voxel(value + _7, x, y, z - 1, CH_WATER);
+				}
+
+				if (y != 0)
+				{
+					value = buffer->get_voxel(x, y - 1, z, CH_WATER);
+					buffer->set_voxel(value + _7, x, y - 1, z, CH_WATER);
 				}
 			}
 	    }
