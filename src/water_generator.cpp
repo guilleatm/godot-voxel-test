@@ -49,10 +49,10 @@ void WaterGenerator::_generate_block(const Ref<VoxelBuffer> &out_buffer, const V
 				
 				if (terrain_voxel > 0) {
 					out_buffer->set_voxel_f(-1.0, x, y, z, channel);
-					out_buffer->set_voxel(WATER_VOXEL_RESOLUTION, x, y, z);
+					out_buffer->set_voxel(0, x, y, z);
 				} else {
 					out_buffer->set_voxel_f(1.0, x, y, z, channel);
-					out_buffer->set_voxel(WATER_VOXEL_RESOLUTION, x, y, z);
+					out_buffer->set_voxel(1, x, y, z);
 				}
 			}
 		}
