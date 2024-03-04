@@ -65,12 +65,6 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Label" type="Label" parent="Control"]
-layout_mode = 1
-offset_right = 91.0
-offset_bottom = 26.0
-text = "Use C and V"
-
 [node name="CenterContainer" type="CenterContainer" parent="Control"]
 layout_mode = 1
 anchors_preset = 15
@@ -91,7 +85,7 @@ texture = ExtResource("8_uq1x1")
 [node name="WaterSimulation" type="WaterSimulation" parent="."]
 Terrain = NodePath("../terrain")
 Water = NodePath("../water")
-"Simulation Timestep (miliseconds)" = 1000
+"Simulation Timestep (miliseconds)" = 50
 
 [node name="terrain" type="VoxelTerrain" parent="."]
 generator = ExtResource("1_4rl5a")
@@ -101,13 +95,11 @@ material_override = SubResource("ShaderMaterial_4xaoo")
 script = ExtResource("8_f0mcc")
 
 [node name="water" type="VoxelTerrain" parent="." node_paths=PackedStringArray("terrain")]
-visible = false
 mesher = ExtResource("2_hwu08")
 bounds = AABB(-96, -16, -96, 192, 112, 192)
 generate_collisions = false
 material_override = SubResource("StandardMaterial3D_pcwu4")
 script = ExtResource("9_xcei2")
 terrain = NodePath("../terrain")
-draw = true
 
 [connection signal="on_area_edited" from="terrain" to="water" method="start_debug_draw"]

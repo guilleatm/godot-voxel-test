@@ -1,6 +1,8 @@
 #include "water_domain.h"
 #include <godot_cpp/core/class_db.hpp>
 
+#include <vector>
+
 using namespace godot;
 
 
@@ -89,12 +91,12 @@ void WaterDomain::prepare_water_buffer()
 
 
 
-bool WaterDomain::mod_voxel(int x, int y, int z)
+bool WaterDomain::mod_voxel_down(int x, int y, int z)
 {
-
-	if (y < 0 || y == size.y ) return false;
-	if (x < 0 || x == size.x ) return false;
-	if (z < 0 || z == size.z ) return false;
+	if (!is_inside_bounds(x, y, z))
+	{
+		return false;
+	}
 
 	uint8_t voxel = write_buffer_ptr->get_voxel(x, y, z, CH_WATER);
 
@@ -107,6 +109,32 @@ bool WaterDomain::mod_voxel(int x, int y, int z)
 }
 
 
+
+bool WaterDomain::mod_voxel(int x, int y, int z)
+{
+	if (!is_inside_bounds(x, y, z))
+	{
+		return false;
+	}
+
+	uint8_t voxel_in_read = read_buffer_ptr->get_voxel(x, y, z, CH_WATER);
+	uint8_t voxel_in_write = write_buffer_ptr->get_voxel(x, y, z, CH_WATER);
+
+	if (voxel_in_read == NO_WATER && voxel_in_write == NO_WATER)
+	{
+		write_buffer_ptr->set_voxel(WATER, x, y, z, CH_WATER);
+		return true;
+	}
+	return false;
+}
+
+bool WaterDomain::is_inside_bounds(int x, int y, int z) const
+{
+	if (y < 0 || y == size.y ) return false;
+	if (x < 0 || x == size.x ) return false;
+	if (z < 0 || z == size.z ) return false;
+	return true;
+}
 
 void WaterDomain::update()
 {
@@ -124,30 +152,29 @@ void WaterDomain::update()
 				// float terrain_voxel_down_sdf = terrain_buffer_ptr->get_voxel_f(x, y - 1, z, CH_SDF);
 
 
-
 				// down
-				CONTINUE_IF(mod_voxel(x, y - 1, z));
+				CONTINUE_IF(mod_voxel_down(x, y - 1, z));
 
 				// down left
-				CONTINUE_IF(mod_voxel(x - 1, y - 1, z));
-				// down right
-				CONTINUE_IF(mod_voxel(x + 1, y - 1, z));
-
+				CONTINUE_IF(mod_voxel_down(x - 1, y - 1, z));
 				// down back
-				CONTINUE_IF(mod_voxel(x, y - 1, z - 1));
+				CONTINUE_IF(mod_voxel_down(x, y - 1, z - 1));
+				// down right
+				CONTINUE_IF(mod_voxel_down(x + 1, y - 1, z));
+
 				// down front
-				CONTINUE_IF(mod_voxel(x, y - 1, z + 1));
+				CONTINUE_IF(mod_voxel_down(x, y - 1, z + 1));
 
-				
-				// left
-				CONTINUE_IF(mod_voxel(x - 1, y, z));
-				// right
-				CONTINUE_IF(mod_voxel(x + 1, y, z));
 
-				// back
-				CONTINUE_IF(mod_voxel(x, y, z - 1));
 				// front
 				CONTINUE_IF(mod_voxel(x, y, z + 1));
+				// right
+				CONTINUE_IF(mod_voxel(x + 1, y, z));
+				// back
+				CONTINUE_IF(mod_voxel(x, y, z - 1));
+				// left
+				CONTINUE_IF(mod_voxel(x - 1, y, z));
+
 
 
 				write_buffer_ptr->set_voxel(WATER, x, y, z, CH_WATER);
@@ -159,7 +186,61 @@ void WaterDomain::update()
 }
 
 
+std::vector<Vector3i> directions = std::vector<Vector3i>
+{{
+	Vector3i(1, 0, 0),
+	Vector3i(-1, 0, 0),
+	Vector3i(0, 1, 0),
+	Vector3i(0, -1, 0),
+	Vector3i(0, 0, 1),
+	Vector3i(0, 0, -1)
+}};
 
+void WaterDomain::update_sdf()
+{
+	for (int y = 0; y < size.y; y++)
+	{
+		for (int x = 0; x < size.x; x++)
+		{
+			for (int z = 0; z < size.z; z++)
+			{
+				uint8_t water_voxel = read_buffer_ptr->get_voxel(x, y, z, CH_WATER);
+
+				// if (water_voxel == WATER)
+				// {
+				// 	read_buffer_ptr->set_voxel_f(-1.0, x, y, z, CH_SDF);
+				// }
+				// else
+				// {
+				// 	read_buffer_ptr->set_voxel_f(1.0, x, y, z, CH_SDF);
+				// }
+
+
+				float sum = water_voxel;
+
+				for (int i = 0; i < directions.size(); i++)
+				{
+					Vector3i d = directions[i];
+					if (!is_inside_bounds(x + d.x , y + d.y, z + d.z))
+					{
+						continue;
+					}
+					
+					uint8_t neigh = read_buffer_ptr->get_voxel(x + d.x , y + d.y, z + d.z, CH_WATER);
+
+					sum += neigh;
+				}
+
+				float sdf_value = ((sum / directions.size()) * 2) - 1;
+
+				read_buffer_ptr->set_voxel_f(-sdf_value, x, y, z, CH_SDF);
+
+
+
+			}
+		}
+	}
+}
 
 
 
@@ -304,3 +385,30 @@ std::array<float, 4> WaterDomain::get_surr(const VoxelBuffer &water_read_buffer,
 bool WaterDomain::is_stable() {
 	return stable_levels >= size.y - 2;
 }
+
+
+// ORDER
+
+// down
+				// CONTINUE_IF(mod_voxel(x, y - 1, z));
+
+				// // down left
+				// CONTINUE_IF(mod_voxel(x - 1, y - 1, z));
+				// // down right
+				// CONTINUE_IF(mod_voxel(x + 1, y - 1, z));
+
+				// // down back
+				// CONTINUE_IF(mod_voxel(x, y - 1, z - 1));
+				// // down front
+				// CONTINUE_IF(mod_voxel(x, y - 1, z + 1));
+
+				
+				// // left
+				// CONTINUE_IF(mod_voxel(x - 1, y, z));
+				// // right
+				// CONTINUE_IF(mod_voxel(x + 1, y, z));
+
+				// // back
+				// CONTINUE_IF(mod_voxel(x, y, z - 1));
+				// // front
+				// CONTINUE_IF(mod_voxel(x, y, z + 1));

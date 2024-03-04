@@ -51,60 +51,17 @@ func debug_draw() -> void:
 func draw_voxel(water_buffer: VoxelBuffer, x: int, y: int, z: int) -> void:
 	
 	var water_voxel: int = water_buffer.get_voxel(x, y, z, ch_water);
+	var sdf: float = water_buffer.get_voxel_f(x, y, z, ch_sdf);
 
-	if (water_voxel == 0): return;
-	
-	var color: Color;
-	var n: float;
-	
-	if (water_voxel > 250):
-		color = Color.RED;
-#	if (water_voxel < 20):
-#		color = Color.NAVAJO_WHITE;
-	else:
-		n += inverse_lerp(float(0), float(255), water_voxel);
-		color = Color.DARK_BLUE
+#	if (water_voxel == 0): return;
+		
+	var n: float = inverse_lerp(-1, +1, sdf);
+	var color: Color = lerp(Color.BLACK, Color.WHITE, n);
 
-#	var color: Color;
-#	if (water_voxel == 0):
-#		return;
-#		color = Color.BLACK;
-#	elif (water_voxel == 5):
-#		color = Color.NAVY_BLUE;
-#	elif (0 < water_voxel and water_voxel < 5):
-#		color = Color.WEB_PURPLE;
-#	else:
-#		color = Color.RED;
 
-	if (x == 0):
-		color = Color.RED
 	DebugDraw3D.draw_sphere(origin + Vector3i(x, y, z), .1, color);
 
 func start_debug_draw(o: Vector3i, s: Vector3) -> void:
 	origin = o;
 	size = s;
 	draw_started = true;
-
-#func is_there_water(area_origin: Vector3i, area_size: Vector3i) -> Array:
-#
-#	var water_buffer: VoxelBuffer = VoxelBuffer.new();
-#	water_buffer.create(area_size.x, area_size.y, area_size.z);
-#	water_vt.copy(area_origin, water_buffer, channel_mask);
-#
-#	for y in area_size.y:
-#		for x in area_size.x:
-#			for z in area_size.z:
-#				if (water_buffer.get_voxel_f(x, y, z, channel) < 0):
-#					return [true, Vector3i(x, y, z)];
-#
-#	return [false, Vector3i.ZERO]; 
-
-
-
-	
-func on_area_edited(area_origin: Vector3i, area_size: Vector3i) -> void:
-	pass
-	
-
-func _on_terrain_on_area_edited(area_origin, area_size):
-	pass # Replace with function body.
