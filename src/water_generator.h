@@ -8,31 +8,30 @@
 #include <godot_cpp/classes/voxel_tool.hpp>
 #include "global.h"
 
-namespace godot {
 
-class WaterGenerator : public VoxelGeneratorScript {
-	GDCLASS(WaterGenerator, VoxelGeneratorScript)
+namespace godot
+{
 
-private:
+	class WaterGenerator : public VoxelGeneratorScript
+	{
+		GDCLASS(WaterGenerator, VoxelGeneratorScript)
 
-	Ref<VoxelTool> terrain_tool;
-	int channel;
-	int channel_mask;
+	private:
 
+		VoxelTool* terrain_tool_ptr;
 
-protected:
-	static void _bind_methods();
+	protected:
+		static void _bind_methods();
 
-public:
-	WaterGenerator();
-	~WaterGenerator();
+	public:
+		WaterGenerator();
+		~WaterGenerator() = default;
 
-	void m_create(VoxelTerrain* terrain);
+		void prepare(VoxelTool* _terrain_tool_ptr);
 
-	void _generate_block(const Ref<VoxelBuffer> &out_buffer, const Vector3i &origin_in_voxels, int lod) override;
-	int _get_used_channels_mask() const override;
-};
-
+		void _generate_block(const Ref<VoxelBuffer> &out_buffer, const Vector3i &origin_in_voxels, int lod) override;
+		int _get_used_channels_mask() const override;
+	};
 }
 
 #endif
