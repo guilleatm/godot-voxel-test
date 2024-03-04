@@ -1,6 +1,6 @@
 [gd_resource type="VoxelGeneratorGraph" load_steps=2 format=3 uid="uid://b7fww5mewecnr"]
 
-[ext_resource type="Image" uid="uid://ctt6vus6w21kb" path="res://Assets/m_terrain_heightmap.png" id="1_hsguo"]
+[ext_resource type="Image" uid="uid://ctt6vus6w21kb" path="res://assets/m_terrain_heightmap.png" id="1_hsguo"]
 
 [resource]
 graph_data = {

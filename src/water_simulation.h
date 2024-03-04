@@ -54,7 +54,7 @@ namespace godot
 		void _ready() override;
 		void _process(double delta) override;
 
-		void add_domain(Vector3i origin, Vector3i size);
+		void create_domain(Vector3i origin, Vector3i size);
 
 
 

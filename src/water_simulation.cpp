@@ -127,7 +127,7 @@ namespace godot
 	}
 
 
-	void WaterSimulation::add_domain(Vector3i origin, Vector3i size)
+	void WaterSimulation::create_domain(Vector3i origin, Vector3i size)
 	{
 		WaterDomain* water_domain = new WaterDomain(origin, size, water_tool, terrain_tool);
 		active_domains.push_back(water_domain);
@@ -148,11 +148,11 @@ namespace godot
 		ClassDB::bind_method(D_METHOD("set_simulation_timestep", "simulation_timestep"), &WaterSimulation::set_simulation_timestep);
 
 
-		ClassDB::bind_method(D_METHOD("add_domain", "origin", "size"), &WaterSimulation::add_domain);
+		ClassDB::bind_method(D_METHOD("create_domain", "origin", "size"), &WaterSimulation::create_domain);
 
-		ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "Terrain"), "set_terrain", "get_terrain");
-		ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "Water"), "set_water", "get_water");
-		ADD_PROPERTY(PropertyInfo(Variant::INT, "Simulation Timestep (miliseconds)"), "set_simulation_timestep", "get_simulation_timestep");
+		ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "terrain"), "set_terrain", "get_terrain");
+		ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "water"), "set_water", "get_water");
+		ADD_PROPERTY(PropertyInfo(Variant::INT, "simulation_timestep_msec"), "set_simulation_timestep", "get_simulation_timestep");
 	
 	
 	

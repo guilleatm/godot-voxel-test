@@ -1,18 +1,19 @@
-[gd_scene load_steps=12 format=3 uid="uid://uf1b2n01kkkq"]
+[gd_scene load_steps=13 format=3 uid="uid://uf1b2n01kkkq"]
 
-[ext_resource type="VoxelGeneratorNoise2D" uid="uid://cmn4p28tu8q5l" path="res://Assets/noise2d_generator.tres" id="1_4rl5a"]
-[ext_resource type="VoxelMesherTransvoxel" uid="uid://b4aepuy1nhq55" path="res://Assets/original_mesher.tres" id="2_hwu08"]
-[ext_resource type="Shader" path="res://Assets/original_shader.gdshader" id="3_8iy6o"]
-[ext_resource type="Script" path="res://Scripts/free_look_camera.gd" id="4_ouhbo"]
-[ext_resource type="Script" path="res://Scripts/test_script.gd" id="5_0vtch"]
+[ext_resource type="Script" path="res://scripts/debug/free_look_camera.gd" id="1_6prdx"]
+[ext_resource type="Script" path="res://scripts/debug/test_script.gd" id="2_w5bob"]
+[ext_resource type="Script" path="res://scripts/concrete/input_manager.gd" id="3_ofc5v"]
+[ext_resource type="VoxelGeneratorNoise2D" uid="uid://cmn4p28tu8q5l" path="res://assets/noise2d_generator.tres" id="4_la6j5"]
+[ext_resource type="VoxelMesherTransvoxel" uid="uid://b4aepuy1nhq55" path="res://assets/original_mesher.tres" id="5_ey6rv"]
+[ext_resource type="Shader" path="res://assets/original_shader.gdshader" id="6_ri3qd"]
 [ext_resource type="Script" path="res://scripts/water_simulation_manager.gd" id="7_ymjgv"]
-[ext_resource type="Script" path="res://Scripts/terrain.gd" id="8_f0mcc"]
-[ext_resource type="Texture2D" uid="uid://bw6nmqyqav3oh" path="res://Assets/2d_handle.png" id="8_uq1x1"]
-[ext_resource type="Script" path="res://Scripts/water.gd" id="9_xcei2"]
+[ext_resource type="Script" path="res://scripts/terrain.gd" id="8_70qrb"]
+[ext_resource type="Script" path="res://scripts/debug/water.gd" id="8_ol8om"]
+[ext_resource type="Texture2D" uid="uid://bw6nmqyqav3oh" path="res://assets/2d_handle.png" id="9_2cyn3"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4xaoo"]
 render_priority = 0
-shader = ExtResource("3_8iy6o")
+shader = ExtResource("6_ri3qd")
 shader_parameter/u_transition_mask = null
 shader_parameter/albedo_color = Color(0.152941, 0.482353, 0.372549, 1)
 
@@ -24,7 +25,7 @@ albedo_color = Color(0.427451, 0.360784, 0.835294, 0.784314)
 
 [node name="camera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16.1849, 0)
-script = ExtResource("4_ouhbo")
+script = ExtResource("1_6prdx")
 sensitivity = 1.5
 default_velocity = 30.0
 boost_speed_multiplier = 15.0
@@ -33,37 +34,42 @@ boost_speed_multiplier = 15.0
 view_distance = 4906
 
 [node name="test_node" type="Node3D" parent="camera" node_paths=PackedStringArray("terrain", "water", "camera")]
-script = ExtResource("5_0vtch")
-terrain = NodePath("../../terrain")
-water = NodePath("../../water")
+script = ExtResource("2_w5bob")
+terrain = NodePath("../../water_simulation/terrain")
+water = NodePath("../../water_simulation/water")
 camera = NodePath("..")
 
 [node name="directional_light" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.813963, 0.580916, 0, -0.580916, 0.813963, 0, 2.19105, 0)
 
+[node name="input_manager" type="Node" parent="." node_paths=PackedStringArray("water_simulation_manager")]
+script = ExtResource("3_ofc5v")
+water_simulation_manager = NodePath("../water_simulation_manager")
+
 [node name="water_simulation_manager" type="Node" parent="." node_paths=PackedStringArray("water_simulation")]
 script = ExtResource("7_ymjgv")
-water_simulation = NodePath("water_simulation")
+water_simulation = NodePath("../water_simulation")
+auto_create_domain = true
 debug_draw_domains = true
 
-[node name="water_simulation" type="WaterSimulation" parent="water_simulation_manager"]
-Terrain = NodePath("../../terrain")
-Water = NodePath("../../water")
-"Simulation Timestep (miliseconds)" = 50
+[node name="water_simulation" type="WaterSimulation" parent="."]
+terrain = NodePath("terrain")
+water = NodePath("water")
+simulation_timestep_msec = 1000
 
-[node name="terrain" type="VoxelTerrain" parent="."]
-generator = ExtResource("1_4rl5a")
-mesher = ExtResource("2_hwu08")
+[node name="terrain" type="VoxelTerrain" parent="water_simulation"]
+generator = ExtResource("4_la6j5")
+mesher = ExtResource("5_ey6rv")
 bounds = AABB(-96, -16, -96, 192, 112, 192)
 material_override = SubResource("ShaderMaterial_4xaoo")
-script = ExtResource("8_f0mcc")
+script = ExtResource("8_70qrb")
 
-[node name="water" type="VoxelTerrain" parent="." node_paths=PackedStringArray("terrain")]
-mesher = ExtResource("2_hwu08")
+[node name="water" type="VoxelTerrain" parent="water_simulation" node_paths=PackedStringArray("terrain")]
+mesher = ExtResource("5_ey6rv")
 bounds = AABB(-96, -16, -96, 192, 112, 192)
 generate_collisions = false
 material_override = SubResource("StandardMaterial3D_pcwu4")
-script = ExtResource("9_xcei2")
+script = ExtResource("8_ol8om")
 terrain = NodePath("../terrain")
 
 [node name="control" type="Control" parent="."]
@@ -91,7 +97,7 @@ theme_override_constants/margin_top = 16
 
 [node name="texture" type="TextureRect" parent="control/center_container/margin_container"]
 layout_mode = 2
-texture = ExtResource("8_uq1x1")
+texture = ExtResource("9_2cyn3")
 
 [node name="water_simulation_controls" type="Control" parent="control"]
 layout_mode = 1
@@ -119,6 +125,5 @@ text = "Pause"
 layout_mode = 2
 text = "Resume"
 
-[connection signal="on_area_edited" from="terrain" to="water" method="start_debug_draw"]
 [connection signal="pressed" from="control/water_simulation_controls/h_box_container/pause" to="water_simulation_manager" method="pause_simulation"]
 [connection signal="pressed" from="control/water_simulation_controls/h_box_container/resume" to="water_simulation_manager" method="resume_simulation"]
