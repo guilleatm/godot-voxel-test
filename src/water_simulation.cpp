@@ -88,6 +88,8 @@ namespace godot
 
 		DO_NOT_PLAY_IN_EDITOR;
 
+		if (!update_simulation) return;
+
 		int current_time = time->get_ticks_msec();
 		int elapsed_time = current_time - last_step_time;
 
@@ -156,9 +158,12 @@ namespace godot
 	
 		ClassDB::bind_method(D_METHOD("get_domain_count"), &WaterSimulation::get_domain_count);
 		ClassDB::bind_method(D_METHOD("get_domain_aabb", "index"), &WaterSimulation::get_domain_aabb);
+		ClassDB::bind_method(D_METHOD("pause"), &WaterSimulation::pause);
+		ClassDB::bind_method(D_METHOD("resume"), &WaterSimulation::resume);
 	
 	}
 
+	// API
 
 	int WaterSimulation::get_domain_count() const
 	{
@@ -168,6 +173,16 @@ namespace godot
 	AABB WaterSimulation::get_domain_aabb(int index) const
 	{
 		return active_domains[index]->aabb;
+	}
+
+	void WaterSimulation::pause() const
+	{
+		update_simulation = false;
+	}
+
+	void WaterSimulation::resume() const
+	{
+		update_simulation = true;
 	}
 
 }

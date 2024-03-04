@@ -31,7 +31,7 @@ namespace godot
 
 		int last_step_time = 0;
 
-		bool update_simulation;
+		mutable bool update_simulation = true;
 
 		std::vector<WaterDomain*> active_domains;
 
@@ -62,7 +62,8 @@ namespace godot
 
 		int get_domain_count() const;
 		AABB get_domain_aabb(int index) const;
-
+		void pause() const;
+		void resume() const;
 
 
 		// GOOD

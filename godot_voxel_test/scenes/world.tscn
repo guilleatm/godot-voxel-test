@@ -1,0 +1,124 @@
+[gd_scene load_steps=12 format=3 uid="uid://uf1b2n01kkkq"]
+
+[ext_resource type="VoxelGeneratorNoise2D" uid="uid://cmn4p28tu8q5l" path="res://Assets/noise2d_generator.tres" id="1_4rl5a"]
+[ext_resource type="VoxelMesherTransvoxel" uid="uid://b4aepuy1nhq55" path="res://Assets/original_mesher.tres" id="2_hwu08"]
+[ext_resource type="Shader" path="res://Assets/original_shader.gdshader" id="3_8iy6o"]
+[ext_resource type="Script" path="res://Scripts/free_look_camera.gd" id="4_ouhbo"]
+[ext_resource type="Script" path="res://Scripts/test_script.gd" id="5_0vtch"]
+[ext_resource type="Script" path="res://scripts/water_simulation_manager.gd" id="7_ymjgv"]
+[ext_resource type="Script" path="res://Scripts/terrain.gd" id="8_f0mcc"]
+[ext_resource type="Texture2D" uid="uid://bw6nmqyqav3oh" path="res://Assets/2d_handle.png" id="8_uq1x1"]
+[ext_resource type="Script" path="res://Scripts/water.gd" id="9_xcei2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4xaoo"]
+render_priority = 0
+shader = ExtResource("3_8iy6o")
+shader_parameter/u_transition_mask = null
+shader_parameter/albedo_color = Color(0.152941, 0.482353, 0.372549, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pcwu4"]
+transparency = 1
+albedo_color = Color(0.427451, 0.360784, 0.835294, 0.784314)
+
+[node name="world" type="Node"]
+
+[node name="camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16.1849, 0)
+script = ExtResource("4_ouhbo")
+sensitivity = 1.5
+default_velocity = 30.0
+boost_speed_multiplier = 15.0
+
+[node name="voxel_viewer" type="VoxelViewer" parent="camera"]
+view_distance = 4906
+
+[node name="test_node" type="Node3D" parent="camera" node_paths=PackedStringArray("terrain", "water", "camera")]
+script = ExtResource("5_0vtch")
+terrain = NodePath("../../terrain")
+water = NodePath("../../water")
+camera = NodePath("..")
+
+[node name="directional_light" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.813963, 0.580916, 0, -0.580916, 0.813963, 0, 2.19105, 0)
+
+[node name="water_simulation_manager" type="Node" parent="." node_paths=PackedStringArray("water_simulation")]
+script = ExtResource("7_ymjgv")
+water_simulation = NodePath("water_simulation")
+debug_draw_domains = true
+
+[node name="water_simulation" type="WaterSimulation" parent="water_simulation_manager"]
+Terrain = NodePath("../../terrain")
+Water = NodePath("../../water")
+"Simulation Timestep (miliseconds)" = 50
+
+[node name="terrain" type="VoxelTerrain" parent="."]
+generator = ExtResource("1_4rl5a")
+mesher = ExtResource("2_hwu08")
+bounds = AABB(-96, -16, -96, 192, 112, 192)
+material_override = SubResource("ShaderMaterial_4xaoo")
+script = ExtResource("8_f0mcc")
+
+[node name="water" type="VoxelTerrain" parent="." node_paths=PackedStringArray("terrain")]
+mesher = ExtResource("2_hwu08")
+bounds = AABB(-96, -16, -96, 192, 112, 192)
+generate_collisions = false
+material_override = SubResource("StandardMaterial3D_pcwu4")
+script = ExtResource("9_xcei2")
+terrain = NodePath("../terrain")
+
+[node name="control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="center_container" type="CenterContainer" parent="control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="margin_container" type="MarginContainer" parent="control/center_container"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+
+[node name="texture" type="TextureRect" parent="control/center_container/margin_container"]
+layout_mode = 2
+texture = ExtResource("8_uq1x1")
+
+[node name="water_simulation_controls" type="Control" parent="control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="h_box_container" type="HBoxContainer" parent="control/water_simulation_controls"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -64.5
+offset_right = 64.5
+offset_bottom = 40.0
+grow_horizontal = 2
+
+[node name="pause" type="Button" parent="control/water_simulation_controls/h_box_container"]
+layout_mode = 2
+text = "Pause"
+
+[node name="resume" type="Button" parent="control/water_simulation_controls/h_box_container"]
+layout_mode = 2
+text = "Resume"
+
+[connection signal="on_area_edited" from="terrain" to="water" method="start_debug_draw"]
+[connection signal="pressed" from="control/water_simulation_controls/h_box_container/pause" to="water_simulation_manager" method="pause_simulation"]
+[connection signal="pressed" from="control/water_simulation_controls/h_box_container/resume" to="water_simulation_manager" method="resume_simulation"]
