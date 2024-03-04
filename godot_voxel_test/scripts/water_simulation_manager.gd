@@ -13,9 +13,11 @@ class_name WaterSimulationManager;
 @export var debug_draw_domains: bool;
 
 func _enter_tree():
+	
 	if (auto_create_domain):
 		var terrain: Terrain = water_simulation.get_node(water_simulation.terrain);
 		(terrain as Terrain).area_edited.connect( create_domain );
+
 
 func _process(_delta: float) -> void:
 	
@@ -30,10 +32,8 @@ func draw_domains() -> void:
 		var domain_aabb: AABB = water_simulation.get_domain_aabb(i);
 		DebugDraw3D.draw_aabb(domain_aabb, Color.YELLOW_GREEN);
 
-
 func create_domain(area_origin: Vector3i, area_size: Vector3i) -> void:
 	water_simulation.create_domain(area_origin, area_size);
-
 
 func pause_simulation() -> void:
 	water_simulation.pause();

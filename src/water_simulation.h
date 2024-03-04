@@ -1,15 +1,17 @@
 #ifndef WATER_SIMULATION_H
 #define WATER_SIMULATION_H
 
-#include <godot_cpp/classes/voxel_terrain.hpp>
+// #include <godot_cpp/classes/node.hpp>
+// #include <godot_cpp/classes/ref.hpp>
 
+// #include <godot_cpp/classes/voxel_tool.hpp>
+
+#include <godot_cpp/classes/voxel_terrain.hpp>
 
 namespace godot
 {
-
-	class WaterDomain;
 	class Time;
-
+	class WaterDomain;
 
 	class WaterSimulation : public Node
 	{
@@ -33,7 +35,7 @@ namespace godot
 
 		mutable bool update_simulation = true;
 
-		std::vector<WaterDomain*> active_domains;
+		std::vector<WaterDomain*> domains;
 
 	protected:
 		static void _bind_methods();
@@ -51,7 +53,7 @@ namespace godot
 		int get_simulation_timestep() const;
 		void set_simulation_timestep(int _simulation_timestep_mseconds);
 
-		void _ready() override;
+		void _enter_tree() override;
 		void _process(double delta) override;
 
 		void create_domain(Vector3i origin, Vector3i size);
