@@ -29,13 +29,12 @@ namespace godot
 	}};
 
 	// update for independence, new here
-	WaterDomain::WaterDomain(Vector3i _origin, Vector3i _size, const Ref<VoxelTool> &water_tool, const Ref<VoxelTool> &terrain_tool)
+	WaterDomain::WaterDomain(Vector3i origin, Vector3i size, const Ref<VoxelTool> &water_tool, const Ref<VoxelTool> &terrain_tool)
 	{
 		const int CH_SDF_MASK = 1 << CH_SDF;
 		const int CH_WATER_MASK = 1 << CH_WATER;
 
-		origin = _origin;
-		size = _size;
+		aabb = AABB(origin, size);
 
 		VoxelBuffer* _water_buffer = new VoxelBuffer();
 		_water_buffer->create(size.x, size.y, size.z);
@@ -53,9 +52,9 @@ namespace godot
 		terrain_buffer_ptr = Ref<VoxelBuffer>(_terrain_buffer);
 		write_buffer_ptr = Ref<VoxelBuffer>(_buffer);
 
-		water_tool->copy(_origin, read_buffer_ptr, CH_SDF_MASK);
-		water_tool->copy(_origin, read_buffer_ptr, CH_WATER_MASK);
-		terrain_tool->copy(_origin, terrain_buffer_ptr, CH_SDF_MASK);
+		water_tool->copy(aabb.position, read_buffer_ptr, CH_SDF_MASK);
+		water_tool->copy(aabb.position, read_buffer_ptr, CH_WATER_MASK);
+		terrain_tool->copy(aabb.position, terrain_buffer_ptr, CH_SDF_MASK);
 
 
 		prepare_water_buffer();
@@ -143,9 +142,9 @@ namespace godot
 
 	bool WaterDomain::is_inside_bounds(int x, int y, int z) const
 	{
-		if (y < 0 || y == size.y ) return false;
-		if (x < 0 || x == size.x ) return false;
-		if (z < 0 || z == size.z ) return false;
+		if (y < 0 || y == aabb.size.y ) return false;
+		if (x < 0 || x == aabb.size.x ) return false;
+		if (z < 0 || z == aabb.size.z ) return false;
 		return true;
 	}
 
@@ -153,11 +152,11 @@ namespace godot
 	{
 		write_buffer_ptr->fill((uint8_t) 0, CH_WATER);
 
-		for (int y = 0; y < size.y; y++)
+		for (int y = 0; y < aabb.size.y; y++)
 		{
-			for (int x = 0; x < size.x; x++)
+			for (int x = 0; x < aabb.size.x; x++)
 			{
-				for (int z = 0; z < size.z; z++)
+				for (int z = 0; z < aabb.size.z; z++)
 				{
 					uint8_t water_voxel = read_buffer_ptr->get_voxel(x, y, z, CH_WATER);
 
@@ -201,11 +200,11 @@ namespace godot
 
 	void WaterDomain::update_sdf()
 	{
-		for (int y = 0; y < size.y; y++)
+		for (int y = 0; y < aabb.size.y; y++)
 		{
-			for (int x = 0; x < size.x; x++)
+			for (int x = 0; x < aabb.size.x; x++)
 			{
-				for (int z = 0; z < size.z; z++)
+				for (int z = 0; z < aabb.size.z; z++)
 				{
 					uint8_t water_voxel = read_buffer_ptr->get_voxel(x, y, z, CH_WATER);
 
@@ -248,7 +247,7 @@ namespace godot
 
 	bool WaterDomain::is_stable()
 	{
-		return stable_levels >= size.y - 2;
+		return stable_levels >= aabb.size.y - 2;
 	}
 
 

@@ -24,8 +24,7 @@ namespace godot
 
         Ref<VoxelBuffer> read_buffer_ptr;
 
-        Vector3i origin;
-        Vector3i size;
+        AABB aabb;
 
         // #O pot ser que no siga necessari, si el juntem en el water_read_buffer se estalviem 2 còpies
         Ref<VoxelBuffer> out_water_buffer;

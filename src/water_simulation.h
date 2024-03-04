@@ -58,6 +58,13 @@ namespace godot
 
 
 
+		// API
+
+		int get_domain_count() const;
+		AABB get_domain_aabb(int index) const;
+
+
+
 		// GOOD
 
 		// void add_domain();

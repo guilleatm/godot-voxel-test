@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://uf1b2n01kkkq"]
+[gd_scene load_steps=14 format=3 uid="uid://uf1b2n01kkkq"]
 
 [ext_resource type="VoxelGeneratorNoise2D" uid="uid://cmn4p28tu8q5l" path="res://Assets/noise2d_generator.tres" id="1_4rl5a"]
 [ext_resource type="VoxelGeneratorGraph" uid="uid://b7fww5mewecnr" path="res://Assets/original_graph_generator.tres" id="1_gps7y"]
@@ -6,6 +6,7 @@
 [ext_resource type="Shader" path="res://Assets/original_shader.gdshader" id="3_8iy6o"]
 [ext_resource type="Script" path="res://Scripts/free_look_camera.gd" id="4_ouhbo"]
 [ext_resource type="Script" path="res://Scripts/test_script.gd" id="5_0vtch"]
+[ext_resource type="Script" path="res://scripts/water_simulation_manager.gd" id="7_ymjgv"]
 [ext_resource type="Script" path="res://Scripts/terrain.gd" id="8_f0mcc"]
 [ext_resource type="Texture2D" uid="uid://bw6nmqyqav3oh" path="res://Assets/2d_handle.png" id="8_uq1x1"]
 [ext_resource type="Script" path="res://Scripts/water.gd" id="9_xcei2"]
@@ -82,9 +83,14 @@ theme_override_constants/margin_top = 16
 layout_mode = 2
 texture = ExtResource("8_uq1x1")
 
-[node name="WaterSimulation" type="WaterSimulation" parent="."]
-Terrain = NodePath("../terrain")
-Water = NodePath("../water")
+[node name="water_simulation_manager" type="Node" parent="." node_paths=PackedStringArray("water_simulation")]
+script = ExtResource("7_ymjgv")
+water_simulation = NodePath("water_simulation")
+debug_draw_domain = true
+
+[node name="water_simulation" type="WaterSimulation" parent="water_simulation_manager"]
+Terrain = NodePath("../../terrain")
+Water = NodePath("../../water")
 "Simulation Timestep (miliseconds)" = 50
 
 [node name="terrain" type="VoxelTerrain" parent="."]
