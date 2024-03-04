@@ -1,6 +1,7 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
+#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/voxel_buffer.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 

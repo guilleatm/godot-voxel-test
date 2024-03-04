@@ -1,6 +1,11 @@
 #include "water_generator.h"
 #include <godot_cpp/core/class_db.hpp>
 
+#include "global.h"
+
+#include <godot_cpp/classes/voxel_terrain.hpp>
+#include <godot_cpp/classes/voxel_tool.hpp>
+
 using namespace godot;
 
 WaterGenerator::WaterGenerator() {}

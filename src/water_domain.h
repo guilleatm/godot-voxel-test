@@ -5,12 +5,9 @@
 
 namespace godot
 {
-
-    class VoxelTool;
     class VoxelBuffer;
     class AABB;
     class WaterSimulation;
-
 
     class WaterDomain
     {
