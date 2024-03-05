@@ -48,11 +48,11 @@ namespace godot
 		int get_simulation_timestep() const;
 		void set_simulation_timestep(int _simulation_timestep_mseconds);
 
-		void _enter_tree() override;
-		void _process(double delta) override;
+		virtual void _enter_tree() override;
+		virtual void _process(double delta) override;
 
-		void create_domain(Vector3i origin, Vector3i size);
-
+		int create_domain(Vector3i origin, Vector3i size);
+		void domain_to_water(int index);
 
 
 		// API
@@ -62,11 +62,9 @@ namespace godot
 		void pause() const;
 		void resume() const;
 
+		VoxelTerrain* get_water_node() const;
+		VoxelTerrain* get_terrain_node() const;
 
-		// GOOD
-
-		// void add_domain();
-		// void remove_domain();
 	};
 
 }

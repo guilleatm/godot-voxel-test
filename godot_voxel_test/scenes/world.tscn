@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/debug/free_look_camera.gd" id="1_6prdx"]
 [ext_resource type="Script" path="res://scripts/debug/test_script.gd" id="2_w5bob"]
-[ext_resource type="Script" path="res://scripts/concrete/input_manager.gd" id="3_ofc5v"]
+[ext_resource type="Script" path="res://scripts/debug/debug_input_manager.gd" id="3_ykuo2"]
 [ext_resource type="VoxelGeneratorNoise2D" uid="uid://cmn4p28tu8q5l" path="res://assets/noise2d_generator.tres" id="4_la6j5"]
 [ext_resource type="VoxelMesherTransvoxel" uid="uid://b4aepuy1nhq55" path="res://assets/original_mesher.tres" id="5_ey6rv"]
 [ext_resource type="Shader" path="res://assets/original_shader.gdshader" id="6_ri3qd"]
@@ -42,8 +42,8 @@ camera = NodePath("..")
 [node name="directional_light" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.813963, 0.580916, 0, -0.580916, 0.813963, 0, 2.19105, 0)
 
-[node name="input_manager" type="Node" parent="." node_paths=PackedStringArray("water_simulation_manager")]
-script = ExtResource("3_ofc5v")
+[node name="debug_input_manager" type="Node" parent="." node_paths=PackedStringArray("water_simulation_manager")]
+script = ExtResource("3_ykuo2")
 water_simulation_manager = NodePath("../water_simulation_manager")
 
 [node name="water_simulation_manager" type="Node" parent="." node_paths=PackedStringArray("water_simulation")]
@@ -71,6 +71,7 @@ generate_collisions = false
 material_override = SubResource("StandardMaterial3D_pcwu4")
 script = ExtResource("8_ol8om")
 terrain = NodePath("../terrain")
+draw = true
 
 [node name="control" type="Control" parent="."]
 layout_mode = 3

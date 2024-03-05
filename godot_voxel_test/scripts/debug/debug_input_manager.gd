@@ -1,7 +1,7 @@
-extends Node
+extends Node;
 
 @export var water_simulation_manager: WaterSimulationManager;
-@export var water: VoxelTerrain;
+#@export var water: VoxelTerrain;
 
 func _input(event: InputEvent) -> void:
 	
@@ -10,8 +10,7 @@ func _input(event: InputEvent) -> void:
 
 func handle_mouse_button(event: InputEventMouseButton) -> void:
 	if (event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed()):
-		create_water();
+		water_simulation_manager.create_water();
 
 
-func create_water():
-	print("create water!");
+

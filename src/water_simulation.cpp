@@ -28,9 +28,9 @@ NodePath WaterSimulation::get_terrain() const
 	return terrain_node_path;
 }
 
-void WaterSimulation::set_terrain(NodePath nodePath)
+void WaterSimulation::set_terrain(NodePath node_path)
 {
-	terrain_node_path = nodePath;
+	terrain_node_path = node_path;
 }
 
 NodePath WaterSimulation::get_water() const
@@ -38,9 +38,9 @@ NodePath WaterSimulation::get_water() const
 	return water_node_path;
 }
 
-void WaterSimulation::set_water(NodePath nodePath)
+void WaterSimulation::set_water(NodePath node_path)
 {
-	water_node_path = nodePath;
+	water_node_path = node_path;
 }
 
 int WaterSimulation::get_simulation_timestep() const
@@ -97,10 +97,16 @@ void WaterSimulation::_process(double delta)
 }
 
 
-void WaterSimulation::create_domain(Vector3i origin, Vector3i size)
+int WaterSimulation::create_domain(Vector3i origin, Vector3i size)
 {
 	WaterDomain* water_domain = new WaterDomain(origin, size, water_tool, terrain_tool);
 	domains.push_back(water_domain);
+	return domains.size() - 1;
+}
+
+void WaterSimulation::domain_to_water(int index)
+{
+	domains[index]->to_water();
 }
 
 void WaterSimulation::_bind_methods()
@@ -118,18 +124,21 @@ void WaterSimulation::_bind_methods()
 	ClassDB::bind_method(D_METHOD("set_simulation_timestep", "simulation_timestep"), &WaterSimulation::set_simulation_timestep);
 
 
-	ClassDB::bind_method(D_METHOD("create_domain", "origin", "size"), &WaterSimulation::create_domain);
 
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "terrain"), "set_terrain", "get_terrain");
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "water"), "set_water", "get_water");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "simulation_timestep_msec"), "set_simulation_timestep", "get_simulation_timestep");
 
+	ClassDB::bind_method(D_METHOD("create_domain", "origin", "size"), &WaterSimulation::create_domain);
+	ClassDB::bind_method(D_METHOD("domain_to_water", "index"), &WaterSimulation::domain_to_water);
 
 
 	ClassDB::bind_method(D_METHOD("get_domain_count"), &WaterSimulation::get_domain_count);
 	ClassDB::bind_method(D_METHOD("get_domain_aabb", "index"), &WaterSimulation::get_domain_aabb);
 	ClassDB::bind_method(D_METHOD("pause"), &WaterSimulation::pause);
 	ClassDB::bind_method(D_METHOD("resume"), &WaterSimulation::resume);
+	ClassDB::bind_method(D_METHOD("get_water_node"), &WaterSimulation::get_water_node);
+	ClassDB::bind_method(D_METHOD("get_terrain_node"), &WaterSimulation::get_terrain_node);
 
 }
 
@@ -153,4 +162,14 @@ void WaterSimulation::pause() const
 void WaterSimulation::resume() const
 {
 	update_simulation = true;
+}
+
+VoxelTerrain* WaterSimulation::get_water_node() const
+{
+	return water;
+}
+
+VoxelTerrain* WaterSimulation::get_terrain_node() const
+{
+	return terrain;
 }

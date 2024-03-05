@@ -44,7 +44,7 @@ void WaterDomain::update()
 	{
 		for (int z = 0; z < aabb.size.z; z++)
 		{
-			float terrain_voxel = terrain_buffer->get_voxel_f(x, 10, z, CH_SDF);
+			float terrain_voxel = terrain_buffer->get_voxel_f(x, 0, z, CH_SDF); // CHANGE
 
 			if (HAS_TERRAIN(terrain_voxel))
 			{
@@ -52,7 +52,30 @@ void WaterDomain::update()
 			}
 			else
 			{
-				water_buffer->set_voxel(WATER, x, 10, z, CH_WATER);
+				water_buffer->set_voxel(WATER, x, 0, z, CH_WATER); // CHANGE
+			}
+		}
+	}
+
+	paste_from_buffers();
+}
+
+void WaterDomain::to_water()
+{
+	copy_to_buffers();
+
+	for (int y = 0; y < aabb.size.y; y++)
+	{
+		for (int x = 0; x < aabb.size.x; x++)
+		{
+			for (int z = 0; z < aabb.size.z; z++)
+			{
+				float water_sdf = water_buffer->get_voxel_f(x, y, z, CH_SDF);
+
+				if (water_sdf < 0)
+				{
+					water_buffer->set_voxel(WATER, x, y, z, CH_WATER);
+				}
 			}
 		}
 	}

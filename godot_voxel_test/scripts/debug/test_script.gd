@@ -1,11 +1,8 @@
 class_name global extends Node3D
 
-
 @export var terrain : Terrain
 @export var water : VoxelTerrain
 @export var camera : Camera3D
-
-#const water_generator = preload("res://Scripts/water_generator.gd");
 
 var vt: VoxelTool
 var water_vt: VoxelTool

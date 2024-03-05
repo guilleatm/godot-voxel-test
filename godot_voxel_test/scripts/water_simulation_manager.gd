@@ -10,6 +10,7 @@ class_name WaterSimulationManager;
 @export var auto_create_domain: bool;
 	
 @export_group("Debug")
+#@export var debug_create_water: bool;
 @export var debug_draw_domains: bool;
 
 func _enter_tree():
@@ -33,6 +34,24 @@ func draw_domains() -> void:
 
 func create_domain(area_origin: Vector3i, area_size: Vector3i) -> void:
 	water_simulation.create_domain(area_origin, area_size);
+
+
+const WATER_SIZE: Vector3 = Vector3.ONE * 8;
+func create_water():
+	var water: VoxelTerrain = water_simulation.get_water_node();
+	var terrain: VoxelTerrain = water_simulation.get_terrain_node();
+	
+	var water_vt: VoxelTool = water.get_voxel_tool();
+	var terrain_vt: VoxelTool = terrain.get_voxel_tool();
+	
+	var camera_forward : Vector3 = -get_viewport().get_camera_3d().basis.z.normalized();
+	var camera_position : Vector3 = get_viewport().get_camera_3d().global_position;
+	var raycast_result : VoxelRaycastResult = terrain_vt.raycast(camera_position, camera_forward, 1000);
+	
+	if (raycast_result):
+		water_vt.do_sphere(raycast_result.position, WATER_SIZE.length() / 2);
+		var domain_ix: int = water_simulation.create_domain(raycast_result.position, WATER_SIZE);
+		water_simulation.domain_to_water(domain_ix);
 
 
 func pause_simulation() -> void:

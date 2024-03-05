@@ -32,6 +32,7 @@ namespace godot
         WaterDomain(Vector3i _origin, Vector3i _size, const Ref<VoxelTool> &water_tool, const Ref<VoxelTool> &terrain_tool);
 
         void update();
+        void to_water();
 
         // bool is_stable();
         // void update();

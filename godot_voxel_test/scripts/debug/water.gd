@@ -18,18 +18,18 @@ var draw_started: bool = false;
 func _ready():
 
 	var water_generator = WaterGenerator.new();
-	water_generator.create(terrain);
-	
+	water_generator.prepare(terrain.get_voxel_tool());
+
 	generator = water_generator;
-	
-	water_vt = get_voxel_tool();
-	water_vt.channel = ch_water;
-	terrain_vt = terrain.get_voxel_tool();
+#
+#	water_vt = get_voxel_tool();
+#	water_vt.channel = ch_water;
+#	terrain_vt = terrain.get_voxel_tool();
 	
 	#water_vt.channel = global.CHANNEL;
+	pass;
 
-
-func _process(delta):
+func _process(_delta: float):
 	
 	if (draw_started and draw):
 		debug_draw()
@@ -50,7 +50,7 @@ func debug_draw() -> void:
 
 func draw_voxel(water_buffer: VoxelBuffer, x: int, y: int, z: int) -> void:
 	
-	var water_voxel: int = water_buffer.get_voxel(x, y, z, ch_water);
+#	var water_voxel: int = water_buffer.get_voxel(x, y, z, ch_water);
 	var sdf: float = water_buffer.get_voxel_f(x, y, z, ch_sdf);
 
 #	if (water_voxel == 0): return;
