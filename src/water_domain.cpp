@@ -48,7 +48,7 @@ void WaterDomain::update()
 
 			if (HAS_TERRAIN(terrain_voxel))
 			{
-				PRINT("TERRAIN IN 10");
+				
 			}
 			else
 			{

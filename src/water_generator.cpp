@@ -19,12 +19,18 @@ void WaterGenerator::prepare(VoxelTool* _terrain_tool_ptr)
 
 void WaterGenerator::_generate_block(const Ref<VoxelBuffer> &out_buffer, const Vector3i &origin_in_voxels, int lod)
 {
+	out_buffer->set_channel_depth(CH_WATER, godot::VoxelBuffer::Depth::DEPTH_8_BIT);
+
+	if (origin_in_voxels.x > 0)
+	{
+		out_buffer->fill_f(-1, CH_SDF);
+		out_buffer->fill(1, CH_WATER);
+	}
 
 	if (lod != 0) return;
 	
 	if (origin_in_voxels.y > 0) return;
 
-	// out_buffer->set_channel_depth(CH_WATER, godot::VoxelBuffer::Depth::DEPTH_8_BIT);
 
 	// Vector3i size = out_buffer->get_size();
 

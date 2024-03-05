@@ -49,8 +49,8 @@ water_simulation_manager = NodePath("../water_simulation_manager")
 [node name="water_simulation_manager" type="Node" parent="." node_paths=PackedStringArray("water_simulation")]
 script = ExtResource("7_ymjgv")
 water_simulation = NodePath("../water_simulation")
-auto_create_domain = true
 debug_draw_domains = true
+debug_draw_water = true
 
 [node name="water_simulation" type="WaterSimulation" parent="."]
 terrain = NodePath("terrain")
@@ -71,7 +71,6 @@ generate_collisions = false
 material_override = SubResource("StandardMaterial3D_pcwu4")
 script = ExtResource("8_ol8om")
 terrain = NodePath("../terrain")
-draw = true
 
 [node name="control" type="Control" parent="."]
 layout_mode = 3
