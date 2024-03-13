@@ -51,8 +51,8 @@ namespace godot
 		virtual void _enter_tree() override;
 		virtual void _process(double delta) override;
 
-		int create_domain(Vector3i origin, Vector3i size);
-		void domain_to_water(int index);
+		void create_domain(Vector3i origin, Vector3i size);
+		// void domain_to_water(int index);
 
 
 		// API

@@ -39,31 +39,27 @@ func draw_water() -> void:
 	var water_vt: VoxelTool = water_simulation.get_water_node().get_voxel_tool();
 	
 	var buffer: VoxelBuffer = VoxelBuffer.new();
-	buffer.create(8, 8, 8);
+#	buffer.create(8, 8, 8);
 	buffer.set_channel_depth(VoxelBuffer.CHANNEL_DATA5, VoxelBuffer.DEPTH_8_BIT);
 	
 	for i in range(domain_count):
 		var domain_aabb: AABB = water_simulation.get_domain_aabb(i);
-	
-		buffer.create(domain_aabb.size.x, domain_aabb.size.y, domain_aabb.size.z)
+		
+		buffer.clear();
+		buffer.create(int(domain_aabb.size.x), int(domain_aabb.size.y), int(domain_aabb.size.z))
 		water_vt.copy(domain_aabb.position, buffer, 1 << VoxelBuffer.CHANNEL_DATA5);
 		
-		for x in range(domain_aabb.size.x):
-			for y in range(domain_aabb.size.y):
-				for z in range(domain_aabb.size.z): 
+		for x in range(int(domain_aabb.size.x)):
+			for y in range(int(domain_aabb.size.y)):
+				for z in range(int(domain_aabb.size.z)): 
 					var pos: Vector3i = Vector3i(x, y, z);
-					var water_voxel = water_vt.get_voxel(pos);
+					var water_voxel: int = buffer.get_voxel(x, y, z, VoxelBuffer.CHANNEL_DATA5);
 					
 					if (water_voxel == 1):
-						print("SOMETHIUI");
-						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + pos, .5, Color.BLACK);
-					else:
-						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + pos);
-		
+						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + pos, .5, Color.BLUE);
 
 func create_domain(area_origin: Vector3i, area_size: Vector3i) -> void:
 	water_simulation.create_domain(area_origin, area_size);
-
 
 func pause_simulation() -> void:
 	water_simulation.pause();
@@ -73,7 +69,7 @@ func resume_simulation() -> void:
 
 
 func create_water():
-	const WATER_SIZE: Vector3 = Vector3.ONE * 8;
+	const WATER_SIZE: Vector3i = Vector3i.ONE * 8;
 	
 	var water: VoxelTerrain = water_simulation.get_water_node();
 	var terrain: VoxelTerrain = water_simulation.get_terrain_node();
@@ -86,7 +82,13 @@ func create_water():
 	var raycast_result : VoxelRaycastResult = terrain_vt.raycast(camera_position, camera_forward, 1000);
 
 	if (raycast_result):
+		water_vt.mode = VoxelTool.MODE_REMOVE;
+		
+#		water_vt.channel = VoxelBuffer.CHANNEL_SDF;
+##		water_vt.do_sphere(raycast_result.position, WATER_SIZE.length() / 2);
+#		water_vt.do_box(raycast_result.position, raycast_result.position + WATER_SIZE);
+#
 #		water_vt.channel = VoxelBuffer.CHANNEL_DATA5;
-		water_vt.do_sphere(raycast_result.position, WATER_SIZE.length() / 2);
-		var domain_ix: int = water_simulation.create_domain(raycast_result.position, WATER_SIZE);
-		water_simulation.domain_to_water(domain_ix);
+#		water_vt.do_box(raycast_result.position, raycast_result.position + WATER_SIZE);
+#		water_vt.do_sphere(raycast_result.position, WATER_SIZE.length() / 2);
+		water_simulation.create_domain(raycast_result.position, WATER_SIZE);

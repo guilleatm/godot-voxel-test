@@ -56,5 +56,6 @@
         "map": "cpp",
         "unordered_set": "cpp",
         "mutex": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": false
 }

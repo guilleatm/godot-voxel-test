@@ -49,6 +49,7 @@ water_simulation_manager = NodePath("../water_simulation_manager")
 [node name="water_simulation_manager" type="Node" parent="." node_paths=PackedStringArray("water_simulation")]
 script = ExtResource("7_ymjgv")
 water_simulation = NodePath("../water_simulation")
+auto_create_domain = true
 debug_draw_domains = true
 debug_draw_water = true
 

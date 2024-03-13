@@ -97,17 +97,16 @@ void WaterSimulation::_process(double delta)
 }
 
 
-int WaterSimulation::create_domain(Vector3i origin, Vector3i size)
+void WaterSimulation::create_domain(Vector3i origin, Vector3i size)
 {
 	WaterDomain* water_domain = new WaterDomain(origin, size, water_tool, terrain_tool);
 	domains.push_back(water_domain);
-	return domains.size() - 1;
 }
 
-void WaterSimulation::domain_to_water(int index)
-{
-	domains[index]->to_water();
-}
+// void WaterSimulation::domain_to_water(int index)
+// {
+// 	domains[index]->to_water();
+// }
 
 void WaterSimulation::_bind_methods()
 {	
@@ -124,14 +123,11 @@ void WaterSimulation::_bind_methods()
 	ClassDB::bind_method(D_METHOD("set_simulation_timestep", "simulation_timestep"), &WaterSimulation::set_simulation_timestep);
 
 
-
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "terrain"), "set_terrain", "get_terrain");
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "water"), "set_water", "get_water");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "simulation_timestep_msec"), "set_simulation_timestep", "get_simulation_timestep");
 
 	ClassDB::bind_method(D_METHOD("create_domain", "origin", "size"), &WaterSimulation::create_domain);
-	ClassDB::bind_method(D_METHOD("domain_to_water", "index"), &WaterSimulation::domain_to_water);
-
 
 	ClassDB::bind_method(D_METHOD("get_domain_count"), &WaterSimulation::get_domain_count);
 	ClassDB::bind_method(D_METHOD("get_domain_aabb", "index"), &WaterSimulation::get_domain_aabb);
