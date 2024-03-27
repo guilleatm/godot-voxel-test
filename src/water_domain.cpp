@@ -33,8 +33,6 @@ water_buffer( Ref<VoxelBuffer>( new VoxelBuffer() ) ),
 terrain_buffer( Ref<VoxelBuffer>( new VoxelBuffer() ) )
 {
 	water_buffer->set_channel_depth(CH_WATER, godot::VoxelBuffer::Depth::DEPTH_8_BIT);
-	water_buffer->set_channel_depth(CH_COL, godot::VoxelBuffer::Depth::DEPTH_8_BIT);
-
 	prepare();
 }
 
@@ -48,13 +46,13 @@ void WaterDomain::update()
 	{
 		for (int z = 0; z < (int) aabb.size.z; z++)
 		{
-			int water_o = water_buffer->get_voxel(x, 0, z, CH_COL);
-			int water_h = water_buffer->get_voxel(x, 1, z, CH_COL);
+			// int water_o = water_buffer->get_voxel(x, 0, z, CH_COL);
+			// int water_h = water_buffer->get_voxel(x, 1, z, CH_COL);
 
-			if (water_h > 0)
-			{
-				PRINT("GOOD");
-			}
+			// if (water_h > 0)
+			// {
+			// 	PRINT("GOOD");
+			// }
 
 
 
@@ -87,60 +85,54 @@ void WaterDomain::prepare()
 	{
 		for (int z = 0; z < (int) aabb.size.z; z++)
 		{
-			int origin = 0;
-			int height = 0;
-
-			bool origin_found = false;
-
+			bool water_found = false;
 			for (int y = 0; y < (int) aabb.size.y; y++)
 			{
-				int water_voxel = water_buffer->get_voxel(x, y, z, CH_WATER);
+				float sdf_water = water_buffer->get_voxel_f(x, y, z, CH_SDF);
 
-				if (!origin_found)
+				PRINT(sdf_water);
+			
+				if (sdf_water < 0)
 				{
-					if (water_voxel == WATER)
+					// WATER
+					if (!water_found)
 					{
-						origin = y;
-						origin_found = true;
+						PRINT("Set origin");
+						water_buffer->set_voxel(y, x, 0, z, CH_WATER);
+						water_found = true;
 					}
+
+					PRINT("Water found");
+
 				}
 				else
 				{
-					if (water_voxel == WATER)
+					// NO WATER
+					if (water_found)
 					{
-						height += 1;
-					}
-					else
-					{
-						break;
-					}
+						PRINT("Update height");
+						water_buffer->set_voxel(y, x, 1, z, CH_WATER);
+					}				
 				}
 			}
 
-			if (height != 0)
-			{
-				PRINT(height);
-			}
-			water_buffer->set_voxel(origin, x, 0, z, CH_COL);
-			water_buffer->set_voxel(height, x, 1, z, CH_COL);
-
-			paste_from_buffers();
 		}
 	}
+	paste_from_buffers();
 }
 
 void WaterDomain::copy_to_buffers()
 {
 	water_buffer->clear();
 	water_buffer->create((int) aabb.size.x, (int) aabb.size.y, (int) aabb.size.z);
-	water_tool->copy(aabb.size, water_buffer, CH_WATER_MASK | CH_SDF_MASK | CH_COL_MASK);
+	water_tool->copy(aabb.position, water_buffer, CH_WATER_MASK | CH_SDF_MASK);
 
 	terrain_buffer->clear();
 	terrain_buffer->create((int) aabb.size.x, (int) aabb.size.y, (int) aabb.size.z);
-	terrain_tool->copy(aabb.size, terrain_buffer, CH_SDF_MASK);
+	terrain_tool->copy(aabb.position, terrain_buffer, CH_SDF_MASK);
 }
 
 void WaterDomain::paste_from_buffers()
 {
-	water_tool->paste(aabb.size, water_buffer, CH_WATER_MASK | CH_SDF_MASK | CH_COL_MASK);
+	water_tool->paste(aabb.position, water_buffer, CH_WATER_MASK | CH_SDF_MASK);
 }
