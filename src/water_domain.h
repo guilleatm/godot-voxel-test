@@ -27,6 +27,8 @@ namespace godot
         void copy_to_buffers();
         void paste_from_buffers();
 
+        void prepare();
+        
     public:
 
         WaterDomain(Vector3i _origin, Vector3i _size, const Ref<VoxelTool> &water_tool, const Ref<VoxelTool> &terrain_tool);

@@ -56,7 +56,7 @@ namespace godot
 
 
 		// API
-
+		
 		int get_domain_count() const;
 		AABB get_domain_aabb(int index) const;
 		void pause() const;

@@ -14,8 +14,12 @@ namespace godot
 
 	const int CH_SDF = VoxelBuffer::CHANNEL_SDF;
 	const int CH_SDF_MASK = 1 << CH_SDF;
+	
 	const int CH_WATER = VoxelBuffer::CHANNEL_DATA5;
 	const int CH_WATER_MASK = 1 << CH_WATER;
+
+	const int CH_COL = VoxelBuffer::CHANNEL_DATA6;
+	const int CH_COL_MASK = 1 << CH_COL;
 
 }
 

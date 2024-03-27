@@ -41,22 +41,34 @@ func draw_water() -> void:
 	var buffer: VoxelBuffer = VoxelBuffer.new();
 #	buffer.create(8, 8, 8);
 	buffer.set_channel_depth(VoxelBuffer.CHANNEL_DATA5, VoxelBuffer.DEPTH_8_BIT);
+	buffer.set_channel_depth(VoxelBuffer.CHANNEL_DATA6, VoxelBuffer.DEPTH_8_BIT);
 	
 	for i in range(domain_count):
 		var domain_aabb: AABB = water_simulation.get_domain_aabb(i);
 		
 		buffer.clear();
 		buffer.create(int(domain_aabb.size.x), int(domain_aabb.size.y), int(domain_aabb.size.z))
-		water_vt.copy(domain_aabb.position, buffer, 1 << VoxelBuffer.CHANNEL_DATA5);
+		water_vt.copy(domain_aabb.position, buffer, 1 << VoxelBuffer.CHANNEL_DATA5 | 1 << VoxelBuffer.CHANNEL_DATA6);
 		
 		for x in range(int(domain_aabb.size.x)):
 			for y in range(int(domain_aabb.size.y)):
 				for z in range(int(domain_aabb.size.z)): 
 					var pos: Vector3i = Vector3i(x, y, z);
 					var water_voxel: int = buffer.get_voxel(x, y, z, VoxelBuffer.CHANNEL_DATA5);
-					
+					var origin: int = buffer.get_voxel(x, 0, z, VoxelBuffer.CHANNEL_DATA6);
+					var height: int = buffer.get_voxel(x, 1, z, VoxelBuffer.CHANNEL_DATA6);
+					var col: int = buffer.get_voxel(x, y, z, VoxelBuffer.CHANNEL_DATA6);
+
 					if (water_voxel == 1):
 						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + pos, .5, Color.BLUE);
+
+					if (col != 0):
+						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + pos, .5, Color.RED);
+
+					
+#					DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + Vector3i(pos.x, origin, pos.z), .5, Color.BLUE_VIOLET);
+#					DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + Vector3i(pos.x, origin + height, pos.z), .5, Color.RED);
+
 
 func create_domain(area_origin: Vector3i, area_size: Vector3i) -> void:
 	water_simulation.create_domain(area_origin, area_size);
@@ -82,7 +94,7 @@ func create_water():
 	var raycast_result : VoxelRaycastResult = terrain_vt.raycast(camera_position, camera_forward, 1000);
 
 	if (raycast_result):
-		water_vt.mode = VoxelTool.MODE_REMOVE;
+#		water_vt.mode = VoxelTool.MODE_REMOVE;
 		
 #		water_vt.channel = VoxelBuffer.CHANNEL_SDF;
 ##		water_vt.do_sphere(raycast_result.position, WATER_SIZE.length() / 2);

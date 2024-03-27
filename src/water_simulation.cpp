@@ -70,7 +70,6 @@ void WaterSimulation::_enter_tree()
 
 void WaterSimulation::_process(double delta)
 {
-
 	DO_NOT_PLAY_IN_EDITOR;
 
 	if (!update_simulation) return;
