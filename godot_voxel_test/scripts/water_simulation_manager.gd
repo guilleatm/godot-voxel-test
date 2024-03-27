@@ -58,14 +58,11 @@ func draw_sdf_water() -> void:
 					if (sdf_water < 0):
 						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + pos, .5, Color.BLUE);
 
-					var other: int = buffer.get_voxel(x, y, z, VoxelBuffer.CHANNEL_DATA5);
+					var origin: int = buffer.get_voxel(x, 0, z, VoxelBuffer.CHANNEL_DATA5);
+					var height: int = buffer.get_voxel(x, 1, z, VoxelBuffer.CHANNEL_DATA5);
 
-					if (other != 0):
-						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + pos, .5, Color.RED);
-
-					
-#					DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + Vector3i(pos.x, origin, pos.z), .5, Color.BLUE_VIOLET);
-#					DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + Vector3i(pos.x, origin + height, pos.z), .5, Color.RED);
+					DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + Vector3i(pos.x, origin, pos.z), .5, Color.DARK_BLUE);
+					DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + Vector3i(pos.x, origin + max(0, height - 1), pos.z), .5, Color.CADET_BLUE);
 
 
 func create_domain(area_origin: Vector3i, area_size: Vector3i) -> void:

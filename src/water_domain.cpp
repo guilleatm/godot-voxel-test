@@ -41,13 +41,14 @@ void WaterDomain::update()
 {
 	copy_to_buffers();
 
-
 	for (int x = 0; x < (int) aabb.size.x; x++)
 	{
 		for (int z = 0; z < (int) aabb.size.z; z++)
 		{
-			// int water_o = water_buffer->get_voxel(x, 0, z, CH_COL);
-			// int water_h = water_buffer->get_voxel(x, 1, z, CH_COL);
+			int water_origin = water_buffer->get_voxel(x, 0, z, CH_WATER);
+			int water_height = water_buffer->get_voxel(x, 1, z, CH_WATER);
+
+			// water_buffer->fill_area(1, );
 
 			// if (water_h > 0)
 			// {
@@ -86,36 +87,23 @@ void WaterDomain::prepare()
 		for (int z = 0; z < (int) aabb.size.z; z++)
 		{
 			bool water_found = false;
+			int height = 0;
 			for (int y = 0; y < (int) aabb.size.y; y++)
 			{
 				float sdf_water = water_buffer->get_voxel_f(x, y, z, CH_SDF);
-
-				PRINT(sdf_water);
 			
 				if (sdf_water < 0)
 				{
 					// WATER
 					if (!water_found)
 					{
-						PRINT("Set origin");
 						water_buffer->set_voxel(y, x, 0, z, CH_WATER);
 						water_found = true;
 					}
-
-					PRINT("Water found");
-
-				}
-				else
-				{
-					// NO WATER
-					if (water_found)
-					{
-						PRINT("Update height");
-						water_buffer->set_voxel(y, x, 1, z, CH_WATER);
-					}				
+					height += 1;
 				}
 			}
-
+			water_buffer->set_voxel(height, x, 1, z, CH_WATER);
 		}
 	}
 	paste_from_buffers();
