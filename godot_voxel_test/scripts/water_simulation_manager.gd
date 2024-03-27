@@ -12,6 +12,7 @@ class_name WaterSimulationManager;
 @export_group("Debug")
 @export var debug_draw_domains: bool;
 @export var debug_draw_sdf_water: bool;
+@export var debug_draw_height_info: bool;
 
 func _enter_tree():
 	if (auto_create_domain):
@@ -23,8 +24,8 @@ func _process(_delta: float) -> void:
 	if (debug_draw_domains):
 		draw_domains();
 		
-	if (debug_draw_sdf_water):
-		draw_sdf_water();
+	if (debug_draw_sdf_water or debug_draw_height_info):
+		draw_water();
 
 
 func draw_domains() -> void:
@@ -34,7 +35,7 @@ func draw_domains() -> void:
 		var domain_aabb: AABB = water_simulation.get_domain_aabb(i);
 		DebugDraw3D.draw_aabb(domain_aabb, Color.YELLOW_GREEN);
 
-func draw_sdf_water() -> void:
+func draw_water() -> void:
 	var domain_count: int = water_simulation.get_domain_count();
 	var water_vt: VoxelTool = water_simulation.get_water_node().get_voxel_tool();
 	
@@ -55,14 +56,16 @@ func draw_sdf_water() -> void:
 					var pos: Vector3i = Vector3i(x, y, z);
 					var sdf_water: float = buffer.get_voxel_f(x, y, z, VoxelBuffer.CHANNEL_SDF);
 
-					if (sdf_water < 0):
-						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + pos, .5, Color.BLUE);
+					if (debug_draw_sdf_water and sdf_water < 0):
+						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + pos, .2, Color.BLUE);
 
-					var origin: int = buffer.get_voxel(x, 0, z, VoxelBuffer.CHANNEL_DATA5);
-					var height: int = buffer.get_voxel(x, 1, z, VoxelBuffer.CHANNEL_DATA5);
 
-					DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + Vector3i(pos.x, origin, pos.z), .5, Color.DARK_BLUE);
-					DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + Vector3i(pos.x, origin + max(0, height - 1), pos.z), .5, Color.CADET_BLUE);
+					if (debug_draw_height_info):
+						var origin: int = buffer.get_voxel(x, 0, z, VoxelBuffer.CHANNEL_DATA5);
+						var height: int = buffer.get_voxel(x, 1, z, VoxelBuffer.CHANNEL_DATA5);
+
+						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + Vector3i(pos.x, origin, pos.z), .5, Color.BLACK);
+						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + Vector3i(pos.x, origin + max(0, height - 1), pos.z), .5, Color.CADET_BLUE);
 
 
 func create_domain(area_origin: Vector3i, area_size: Vector3i) -> void:
@@ -89,6 +92,9 @@ func create_water():
 	var raycast_result : VoxelRaycastResult = terrain_vt.raycast(camera_position, camera_forward, 1000);
 
 	if (raycast_result):
+		var base_offset: Vector3i = Vector3i(0, 10, 0);
+		var sphere_offset: Vector3i = Vector3i(4, 4, 4) + base_offset;
+		water_vt.do_sphere(raycast_result.position + sphere_offset, WATER_SIZE.length() / 4);
 #		water_vt.mode = VoxelTool.MODE_REMOVE;
 		
 #		water_vt.channel = VoxelBuffer.CHANNEL_SDF;
@@ -98,4 +104,5 @@ func create_water():
 #		water_vt.channel = VoxelBuffer.CHANNEL_DATA5;
 #		water_vt.do_box(raycast_result.position, raycast_result.position + WATER_SIZE);
 #		water_vt.do_sphere(raycast_result.position, WATER_SIZE.length() / 2);
-		water_simulation.create_domain(raycast_result.position, WATER_SIZE);
+		var domain_offset: Vector3i = Vector3i(0, 0, 0) + base_offset;
+		water_simulation.create_domain(raycast_result.position + domain_offset, WATER_SIZE);

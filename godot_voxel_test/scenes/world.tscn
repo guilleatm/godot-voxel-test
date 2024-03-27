@@ -52,6 +52,7 @@ water_simulation = NodePath("../water_simulation")
 auto_create_domain = true
 debug_draw_domains = true
 debug_draw_sdf_water = true
+debug_draw_height_info = true
 
 [node name="water_simulation" type="WaterSimulation" parent="."]
 terrain = NodePath("terrain")

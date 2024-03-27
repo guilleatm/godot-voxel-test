@@ -52,31 +52,24 @@ void WaterDomain::update()
 			int water_origin = water_buffer->get_voxel(x, 0, z, CH_WATER);
 			int water_height = water_buffer->get_voxel(x, 1, z, CH_WATER);
 
-			water_buffer->fill_area(PLUS_ONE_F, Vector3i(x, water_origin, z), Vector3i(x + 1, water_origin + water_height, z + 1), CH_SDF);
 
+			if (aabb.has_point( Vector3i(x, water_origin - 1, z) ))
+			{
+				float terrain_down_sdf = terrain_buffer->get_voxel_f(x, water_origin - 1, z, CH_SDF);
 
-			// if (water_h > 0)
-			// {
-			// 	PRINT("GOOD");
-			// }
+				PRINT(terrain_down_sdf);
+				if (HAS_TERRAIN(terrain_down_sdf))
+				{
 
+				}
+				else
+				{
+					water_buffer->set_voxel(water_origin - 1, x, 0, z, CH_WATER);
 
-
-			// if (water == WATER)
-			// {
-			// 	PRINT("WATER HERE");
-			// }
-
-			// float terrain_voxel = terrain_buffer->get_voxel_f(x, y, z, CH_SDF); // CHANGE
-
-			// if (HAS_TERRAIN(terrain_voxel))
-			// {
-				
-			// }
-			// else
-			// {
-			// 	water_buffer->set_voxel(WATER, x, y, z, CH_WATER); // CHANGE
-			// }
+					// water_buffer->fill_area(PLUS_ONE_F, Vector3i(x, water_origin, z), Vector3i(x + 1, water_origin + water_height, z + 1), CH_SDF);
+					// water_buffer->fill_area(MINUS_ONE_F, Vector3i(x, water_origin - 1, z), Vector3i(x + 1, water_origin + water_height - 1, z + 1), CH_SDF);
+				}
+			}
 		}
 	}
 
@@ -87,8 +80,8 @@ void WaterDomain::prepare()
 {
 	copy_to_buffers();
 
-	water_buffer->set_voxel_f(-1.0f, 0, 0, 0, CH_SDF);
-	PRINT(water_buffer->get_voxel(0, 0, 0, CH_SDF));
+	// water_buffer->set_voxel_f(-1.0f, 0, 0, 0, CH_SDF);
+	// PRINT(water_buffer->get_voxel(0, 0, 0, CH_SDF));
 
 	for (int x = 0; x < (int) aabb.size.x; x++)
 	{
