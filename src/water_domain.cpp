@@ -39,6 +39,10 @@ terrain_buffer( Ref<VoxelBuffer>( new VoxelBuffer() ) )
 
 void WaterDomain::update()
 {
+
+	const uint64_t MINUS_ONE_F = 32769; 
+	const uint64_t PLUS_ONE_F = 32767; 
+
 	copy_to_buffers();
 
 	for (int x = 0; x < (int) aabb.size.x; x++)
@@ -48,7 +52,8 @@ void WaterDomain::update()
 			int water_origin = water_buffer->get_voxel(x, 0, z, CH_WATER);
 			int water_height = water_buffer->get_voxel(x, 1, z, CH_WATER);
 
-			// water_buffer->fill_area(1, );
+			water_buffer->fill_area(PLUS_ONE_F, Vector3i(x, water_origin, z), Vector3i(x + 1, water_origin + water_height, z + 1), CH_SDF);
+
 
 			// if (water_h > 0)
 			// {
@@ -82,6 +87,9 @@ void WaterDomain::prepare()
 {
 	copy_to_buffers();
 
+	water_buffer->set_voxel_f(-1.0f, 0, 0, 0, CH_SDF);
+	PRINT(water_buffer->get_voxel(0, 0, 0, CH_SDF));
+
 	for (int x = 0; x < (int) aabb.size.x; x++)
 	{
 		for (int z = 0; z < (int) aabb.size.z; z++)
@@ -101,6 +109,7 @@ void WaterDomain::prepare()
 						water_found = true;
 					}
 					height += 1;
+
 				}
 			}
 			water_buffer->set_voxel(height, x, 1, z, CH_WATER);
