@@ -8,22 +8,22 @@
 
 #include <vector>
 
-#define WATER 1
-#define NO_WATER 0
+#define OFFSET 0
+#define HEIGHT 1
 
 #define HAS_TERRAIN(voxel) voxel < 0
 
 using namespace godot;
 
-const std::vector<Vector2i> directions = std::vector<Vector2i>
-{{
+const std::array<Vector2i, 4> directions =
+{
 	Vector2i(1, 0),
 	Vector2i(-1, 0),
 	Vector2i(0, 1),
-	Vector2i(0, -1)
-}};
+	Vector2i(0, -1),
+};
 
-
+const Vector3 BOUNDARY_CHECK_OFFSET = Vector3(.5, .5, .5); 
 
 WaterDomain::WaterDomain(Vector3i origin, Vector3i size, const Ref<VoxelTool>& _water_tool, const Ref<VoxelTool>& _terrain_tool) :
 aabb( AABB(origin, size) ),
@@ -52,22 +52,63 @@ void WaterDomain::update()
 			int water_origin = water_buffer->get_voxel(x, 0, z, CH_WATER);
 			int water_height = water_buffer->get_voxel(x, 1, z, CH_WATER);
 
+			// UPDATE SDF CHANNEL
+			water_buffer->fill_area(PLUS_ONE_F, Vector3i(x, water_origin, z), Vector3i(x + 1, water_origin + water_height, z + 1), CH_SDF);
+			water_buffer->fill_area(MINUS_ONE_F, Vector3i(x, water_origin - 1, z), Vector3i(x + 1, water_origin + water_height - 1, z + 1), CH_SDF);
 
-			if (aabb.has_point( Vector3i(x, water_origin - 1, z) ))
+			
+			
+			
+			if (aabb.has_point( aabb.position + BOUNDARY_CHECK_OFFSET + Vector3i(x, water_origin - 1, z) ))
 			{
 				float terrain_down_sdf = terrain_buffer->get_voxel_f(x, water_origin - 1, z, CH_SDF);
 
-				PRINT(terrain_down_sdf);
+				// PRINT(terrain_down_sdf);
 				if (HAS_TERRAIN(terrain_down_sdf))
 				{
+					// const int TRANSF = 1;
+					// for (int i = 0; i < directions.size(); i++)
+					// {
+					// 	Vector2i d = directions[i];
 
+					// 	// Skip if not in bounds
+					// 	if (!aabb.has_point( aabb.position + Vector3i(x + d.x, 1, z + d.y) )) continue;
+
+					// 	int water_height_other = water_buffer->get_voxel(x + d.x, 1, z + d.y, CH_WATER);
+					// 	if (water_height_other < water_height)
+					// 	{
+					// 		water_buffer->set_voxel(water_height - TRANSF, x, 1, z, CH_WATER);
+					// 		water_buffer->set_voxel(water_height_other + TRANSF, x + d.x, 1, z + d.y, CH_WATER);
+					// 	}
+					// }
 				}
 				else
 				{
-					water_buffer->set_voxel(water_origin - 1, x, 0, z, CH_WATER);
+					// Reduce my offset
+					water_buffer->set_voxel(water_origin - 1, x, OFFSET, z, CH_WATER);
 
 					// water_buffer->fill_area(PLUS_ONE_F, Vector3i(x, water_origin, z), Vector3i(x + 1, water_origin + water_height, z + 1), CH_SDF);
 					// water_buffer->fill_area(MINUS_ONE_F, Vector3i(x, water_origin - 1, z), Vector3i(x + 1, water_origin + water_height - 1, z + 1), CH_SDF);
+				}
+			}
+			else
+			{
+				const int TRANSF = 1;
+				for (int i = 0; i < directions.size(); i++)
+				{
+					Vector2i d = directions[i];
+
+					// Skip if not in bounds
+
+					if (!aabb.has_point( aabb.position + BOUNDARY_CHECK_OFFSET + Vector3i(x + d.x, 1, z + d.y) )) continue;
+
+					int water_height_other = water_buffer->get_voxel(x + d.x, HEIGHT, z + d.y, CH_WATER);
+					if (water_height_other < water_height)
+					{
+						water_height -= TRANSF;
+						water_buffer->set_voxel(water_height, x, HEIGHT, z, CH_WATER);
+						water_buffer->set_voxel(water_height_other + TRANSF, x + d.x, HEIGHT, z + d.y, CH_WATER);
+					}
 				}
 			}
 		}
@@ -102,7 +143,6 @@ void WaterDomain::prepare()
 						water_found = true;
 					}
 					height += 1;
-
 				}
 			}
 			water_buffer->set_voxel(height, x, 1, z, CH_WATER);

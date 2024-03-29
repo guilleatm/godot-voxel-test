@@ -18,8 +18,8 @@ namespace godot
 	const int CH_WATER = VoxelBuffer::CHANNEL_DATA5;
 	const int CH_WATER_MASK = 1 << CH_WATER;
 
-	const int CH_COL = VoxelBuffer::CHANNEL_DATA6;
-	const int CH_COL_MASK = 1 << CH_COL;
+	const int CH_TMP = VoxelBuffer::CHANNEL_DATA6;
+	const int CH_TMP_MASK = 1 << CH_TMP;
 
 }
 
