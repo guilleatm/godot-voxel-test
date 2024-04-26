@@ -33,7 +33,7 @@ namespace godot
         void prepare();
 
 
-        Ref<VoxelBuffer> clone_water_buffer(const Ref<VoxelBuffer>& src_buffer) const;
+        Ref<VoxelBuffer> clone_buffer(const Ref<VoxelBuffer>& src_buffer) const;
 
         void clear_heigth_data(Ref<VoxelBuffer>& buffer) const;
 

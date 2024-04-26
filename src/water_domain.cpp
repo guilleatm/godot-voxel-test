@@ -120,7 +120,7 @@ void WaterDomain::update()
 
 	PRINT(m_aabb.size);
 
-	Ref<VoxelBuffer> new_water_buffer = clone_water_buffer(m_water_buffer);
+	Ref<VoxelBuffer> new_water_buffer = clone_buffer(m_water_buffer);
 
 	Vector3i min_with_water = Vector3i(INT32_MAX, INT32_MAX, INT32_MAX);
 	Vector3i max_with_water = Vector3i(-1, -1, -1);
@@ -214,13 +214,9 @@ void WaterDomain::update_inner_aabb(const Vector3i& min, const Vector3i& max, co
 	inner_aabb.set_end( aabb.position + max );
 }
 
-Ref<VoxelBuffer> WaterDomain::clone_water_buffer(const Ref<VoxelBuffer>& src_buffer) const
+Ref<VoxelBuffer> WaterDomain::clone_buffer(const Ref<VoxelBuffer>& src_buffer) const
 {
-	Ref<VoxelBuffer> clone = Ref<VoxelBuffer>( src_buffer );
-	// clone->set_channel_depth(CH_WATER, VoxelBuffer::DEPTH_8_BIT);
-	// clone->create(src_buffer->get_size().x, src_buffer->get_size().y, src_buffer->get_size().z);
-	// clone->copy_channel_from(src_buffer, CH_WATER);
-	return clone;
+	return Ref<VoxelBuffer>( src_buffer );
 }
 
 void WaterDomain::clear_heigth_data(Ref<VoxelBuffer>& buffer) const
@@ -289,8 +285,27 @@ void WaterDomain::update_size(AABB& aabb, const AABB& inner_aabb) const
 
 	if ( !aabb.encloses( aux_inner_aabb ) )
 	{
-		// aabb.set_position( aux_inner_aabb.get_position() );
+		Vector3i og_size = aabb.get_size();
 		aabb.set_end( aux_inner_aabb.get_end() );
+
+
+		Vector3i og_position = aabb.get_position();
+		Vector3i new_position = aux_inner_aabb.get_position();
+		// Probably we can just do this if .y doesn't match
+		if (og_position != new_position)
+		{
+			auto og_water_buffer = clone_buffer(m_water_buffer);
+
+
+			Vector3i v = new_position - og_position;
+			aabb.set_position(new_position);
+		
+			Vector3i new_size = aabb.get_size();
+
+			m_water_buffer->copy_channel_from_area(og_water_buffer, Vector3i(0, 0, 0), new_size, Vector3i(-v.x, 0, -v.z), CH_WATER);
+		
+		}
+	
 	}
 
 }
