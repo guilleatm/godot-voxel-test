@@ -98,7 +98,7 @@ void WaterSimulation::_process(double delta)
 
 void WaterSimulation::create_domain(Vector3i origin, Vector3i size)
 {
-	WaterDomain* water_domain = new WaterDomain(origin, size, water_tool, terrain_tool);
+	WaterDomain* water_domain = new WaterDomain(origin, size, water_tool, terrain_tool, true);
 	domains.push_back(water_domain);
 }
 
@@ -146,7 +146,7 @@ int WaterSimulation::get_domain_count() const
 
 AABB WaterSimulation::get_domain_aabb(int index) const
 {
-	return domains[index]->aabb;
+	return domains[index]->m_aabb;
 }
 
 void WaterSimulation::pause() const

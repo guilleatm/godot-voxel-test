@@ -62,10 +62,16 @@ func draw_water() -> void:
 
 					if (debug_draw_height_info):
 						var origin: int = buffer.get_voxel(x, 0, z, VoxelBuffer.CHANNEL_DATA5);
-						var height: int = buffer.get_voxel(x, 1, z, VoxelBuffer.CHANNEL_DATA5);
-
+						var n: int = buffer.get_voxel(x, 1, z, VoxelBuffer.CHANNEL_DATA5);
+						
+						var height: int = n / 5; # 5 -> COMPLETE_WATER
+						var water: int = n % 5; # 5 -> COMPLETE_WATER
+					
+						var normalized: float = inverse_lerp(0, domain_aabb.size.y, height);
+						var color: Color = Color(n, n, .7);
+					
 						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + Vector3i(pos.x, origin, pos.z), .5, Color.BLACK);
-						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + Vector3i(pos.x, origin + max(0, height - 1), pos.z), .5, Color.CADET_BLUE);
+						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + Vector3i(pos.x, origin + max(0, height - 1), pos.z), .5, color);
 
 
 func create_domain(area_origin: Vector3i, area_size: Vector3i) -> void:
@@ -92,17 +98,9 @@ func create_water():
 	var raycast_result : VoxelRaycastResult = terrain_vt.raycast(camera_position, camera_forward, 1000);
 
 	if (raycast_result):
-		var base_offset: Vector3i = Vector3i(0, 10, 0);
+		var base_offset: Vector3i = Vector3i(0, 3, 0);
 		var sphere_offset: Vector3i = Vector3i(4, 4, 4) + base_offset;
 		water_vt.do_sphere(raycast_result.position + sphere_offset, WATER_SIZE.length() / 4);
-#		water_vt.mode = VoxelTool.MODE_REMOVE;
-		
-#		water_vt.channel = VoxelBuffer.CHANNEL_SDF;
-##		water_vt.do_sphere(raycast_result.position, WATER_SIZE.length() / 2);
-#		water_vt.do_box(raycast_result.position, raycast_result.position + WATER_SIZE);
-#
-#		water_vt.channel = VoxelBuffer.CHANNEL_DATA5;
-#		water_vt.do_box(raycast_result.position, raycast_result.position + WATER_SIZE);
-#		water_vt.do_sphere(raycast_result.position, WATER_SIZE.length() / 2);
+
 		var domain_offset: Vector3i = Vector3i(0, 0, 0) + base_offset;
 		water_simulation.create_domain(raycast_result.position + domain_offset, WATER_SIZE);

@@ -37,7 +37,7 @@ func _unhandled_input(event):
 			my_remove()
 		if event.pressed and event.keycode == KEY_N:
 			create_water()
-		if event.pressed and event.keycode == KEY_P:
+		if event.pressed and event.keycode == KEY_I:
 			create_point()
 
 func create_water() -> void:
