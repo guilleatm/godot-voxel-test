@@ -130,6 +130,7 @@ void WaterSimulation::_bind_methods()
 
 	ClassDB::bind_method(D_METHOD("get_domain_count"), &WaterSimulation::get_domain_count);
 	ClassDB::bind_method(D_METHOD("get_domain_aabb", "index"), &WaterSimulation::get_domain_aabb);
+	ClassDB::bind_method(D_METHOD("get_domain_inner_aabb", "index"), &WaterSimulation::get_domain_inner_aabb);
 	ClassDB::bind_method(D_METHOD("pause"), &WaterSimulation::pause);
 	ClassDB::bind_method(D_METHOD("resume"), &WaterSimulation::resume);
 	ClassDB::bind_method(D_METHOD("get_water_node"), &WaterSimulation::get_water_node);
@@ -147,6 +148,11 @@ int WaterSimulation::get_domain_count() const
 AABB WaterSimulation::get_domain_aabb(int index) const
 {
 	return domains[index]->m_aabb;
+}
+
+AABB WaterSimulation::get_domain_inner_aabb(int index) const
+{
+	return domains[index]->m_inner_aabb;
 }
 
 void WaterSimulation::pause() const

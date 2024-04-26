@@ -27,12 +27,12 @@ const std::array<Vector2i, 4> directions =
 
 WaterDomain::WaterDomain(Vector3i origin, Vector3i size, const Ref<VoxelTool>& _water_tool, const Ref<VoxelTool>& _terrain_tool, bool auto_resize) :
 m_aabb( AABB(origin, size) ),
+m_inner_aabb( m_aabb ),
 water_tool( _water_tool ),
 terrain_tool( _terrain_tool ),
 m_water_buffer( Ref<VoxelBuffer>( new VoxelBuffer() ) ),
 m_terrain_buffer( Ref<VoxelBuffer>( new VoxelBuffer() ) ),
-m_auto_resize(auto_resize),
-m_resize_buffer( { DomainBehaviour::keep, DomainBehaviour::keep, DomainBehaviour::keep } )
+m_auto_resize(auto_resize)
 {
 	m_water_buffer->set_channel_depth(CH_WATER, godot::VoxelBuffer::Depth::DEPTH_8_BIT);
 	prepare();
@@ -119,8 +119,9 @@ void WaterDomain::update()
 	pull(m_water_buffer, m_terrain_buffer);
 
 	Ref<VoxelBuffer> new_water_buffer = clone_water_buffer(m_water_buffer);
-	// clear_heigth_data(new_water_buffer);
-	// new_water_buffer->fill(0, CH_WATER);
+
+	Vector3i min_with_water = Vector3i(INT32_MAX, INT32_MAX, INT32_MAX);
+	Vector3i max_with_water = Vector3i(-1, -1, -1);
 
 	for (int x = 0; x < (int) m_aabb.size.x; x++)
 	{
@@ -142,78 +143,19 @@ void WaterDomain::update()
 				}
 			}
 
-			update_sdf(x, z, m_water_buffer, new_water_buffer);
-
-
-			// int water_origin = m_water_buffer->get_voxel(x, OFFSET, z, CH_WATER);
-			// int water_height = m_water_buffer->get_voxel(x, HEIGHT, z, CH_WATER);
-
-			// update_resize_buffer(Vector2i(x, z), water_origin, water_height);			
-
-
-
-
-			
-			// Tinc voxel baix?
-			// if (m_aabb.has_point( m_aabb.position + BOUNDARY_CHECK_OFFSET + Vector3i(x, water_origin - 1, z) ))
-			// {
-			// 	float terrain_down_sdf = m_terrain_buffer->get_voxel_f(x, water_origin - 1, z, CH_SDF);
-
-			// 	// Tinc terra baix?
-			// 	if (HAS_TERRAIN(terrain_down_sdf))
-			// 	{
-			// 		for (int i = 0; i < directions.size(); i++)
-			// 		{
-			// 			Vector2i d = directions[i];
-
-			// 			if (!m_aabb.has_point( m_aabb.position + BOUNDARY_CHECK_OFFSET + Vector3i(x + d.x, HEIGHT, z + d.y) )) continue;
-
-			// 			int water_height_other = m_water_buffer->get_voxel(x + d.x, HEIGHT, z + d.y, CH_WATER);
-			// 			if (water_height_other < water_height)
-			// 			{
-			// 				water_height -= TRANSF;
-			// 				m_water_buffer->set_voxel(water_height, x, HEIGHT, z, CH_WATER);
-			// 				m_water_buffer->set_voxel(water_height_other + TRANSF, x + d.x, HEIGHT, z + d.y, CH_WATER);
-			// 			}
-			// 		}
-			// 	}
-			// 	else
-			// 	{
-			// 		// Reduce my offset
-			// 		m_water_buffer->set_voxel(water_origin - 1, x, OFFSET, z, CH_WATER);
-
-			// 		// water_buffer->fill_area(PLUS_ONE_F, Vector3i(x, water_origin, z), Vector3i(x + 1, water_origin + water_height, z + 1), CH_SDF);
-			// 		// water_buffer->fill_area(MINUS_ONE_F, Vector3i(x, water_origin - 1, z), Vector3i(x + 1, water_origin + water_height - 1, z + 1), CH_SDF);
-			// 	}
-			// }
-			// else
-			// {
-			// 	const int TRANSF = 1;
-			// 	for (int i = 0; i < directions.size(); i++)
-			// 	{
-			// 		Vector2i d = directions[i];
-
-			// 		if (!m_aabb.has_point( m_aabb.position + BOUNDARY_CHECK_OFFSET + Vector3i(x + d.x, HEIGHT, z + d.y) )) continue;
-
-			// 		int water_height_other = m_water_buffer->get_voxel(x + d.x, HEIGHT, z + d.y, CH_WATER);
-			// 		if (water_height_other < water_height)
-			// 		{
-			// 			water_height -= TRANSF;
-			// 			m_water_buffer->set_voxel(water_height, x, HEIGHT, z, CH_WATER);
-			// 			m_water_buffer->set_voxel(water_height_other + TRANSF, x + d.x, HEIGHT, z + d.y, CH_WATER);
-			// 		}
-			// 	}
-			// }
+			p_update_sdf(x, z, m_water_buffer, new_water_buffer);
+			p_update_min_max(x, z, m_water_buffer, min_with_water, max_with_water);
 		}
 	}
 
-
 	push(new_water_buffer);
+
+	update_inner_aabb(min_with_water, max_with_water, m_inner_aabb);
 
 	update_size();
 }
 
-void WaterDomain::update_sdf(int x, int z, const Ref<VoxelBuffer>& src_buffer, Ref<VoxelBuffer>& dst_buffer) const
+void WaterDomain::p_update_sdf(int x, int z, const Ref<VoxelBuffer>& src_buffer, Ref<VoxelBuffer>& dst_buffer) const
 {
 	const uint64_t MINUS_ONE_F = 32769;
 	const uint64_t PLUS_ONE_F = 32767;
@@ -234,10 +176,31 @@ void WaterDomain::update_sdf(int x, int z, const Ref<VoxelBuffer>& src_buffer, R
 	
 		dst_buffer->set_voxel_f(sdf_water, x, offset + height + 1, z);
 	}
-
-
 }
 
+void WaterDomain::p_update_min_max(int x, int z, const Ref<VoxelBuffer>& src_buffer, Vector3i& min, Vector3i& max) const
+{	
+	int n = src_buffer->get_voxel(x, HEIGHT, z, CH_WATER);
+	int offset = src_buffer->get_voxel(x, OFFSET, z, CH_WATER);
+	int height = n / COMPLETE_WATER;
+
+	if (height > 0)
+	{
+		min.x = std::min(min.x, x);
+		min.y = std::min(min.y, offset);
+		min.z = std::min(min.z, z);
+
+		max.x = std::max(max.x, x);
+		max.y = std::max(max.y, height);
+		max.z = std::max(max.z, z);
+	}
+}
+
+void WaterDomain::update_inner_aabb(const Vector3i& min, const Vector3i& max, AABB& aabb) const
+{
+	aabb.set_position( m_aabb.position + min );
+	aabb.set_end( m_aabb.position + max );
+}
 
 Ref<VoxelBuffer> WaterDomain::clone_water_buffer(const Ref<VoxelBuffer>& src_buffer) const
 {
@@ -306,66 +269,8 @@ void WaterDomain::push(const Ref<VoxelBuffer>& src_water_buffer) const
 	water_tool->paste(m_aabb.position, src_water_buffer, CH_WATER_MASK | CH_SDF_MASK);
 }
 
-
-
-void WaterDomain::reset_resize_buffer()
-{
-	if (!m_auto_resize) return;
-	for (int i = 0; i < m_resize_buffer.size(); i++)
-	{
-		m_resize_buffer[i] = DomainBehaviour::keep;
-	}
-}
-
-void WaterDomain::update_resize_buffer(Vector2i xz, int origin, int height)
-{
-	if (!m_auto_resize) return;
-	
-	if (height > 0)
-	{
-		if (xz.x == 0)
-		{
-			m_resize_buffer[0] = DomainBehaviour::expand;
-		}
-
-		if (xz.y == 0)
-		{
-			m_resize_buffer[2] = DomainBehaviour::expand;
-		}
-	}
-	else
-	{
-
-	}
-}
-
 void WaterDomain::update_size()
 {
-	const int RATE = 1;
 	if (!m_auto_resize) return;
 
-	Vector3i result = Vector3i(0, 0, 0);
-
-	for (int i = 0; i < m_resize_buffer.size(); i++)
-	{
-		switch (m_resize_buffer[i])
-		{
-		case DomainBehaviour::expand:
-			result[i] = +RATE;
-			break;
-		
-		case DomainBehaviour::shrink:
-			result[i] = -RATE;
-			break;
-		
-		case DomainBehaviour::keep:
-		default:
-			break;
-		}
-	}
-
-	m_aabb.set_size(m_aabb.size + result);
-	m_aabb.set_position(m_aabb.position - result);
-
-	reset_resize_buffer();
 }

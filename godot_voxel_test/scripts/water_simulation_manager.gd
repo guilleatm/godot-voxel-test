@@ -34,7 +34,10 @@ func draw_domains() -> void:
 	for i in range(domain_count):
 		var domain_aabb: AABB = water_simulation.get_domain_aabb(i);
 		DebugDraw3D.draw_aabb(domain_aabb, Color.YELLOW_GREEN);
-
+		
+		var inner_domain_aabb: AABB = water_simulation.get_domain_inner_aabb(i);
+		DebugDraw3D.draw_aabb(inner_domain_aabb, Color.GREEN_YELLOW);
+		
 func draw_water() -> void:
 	var domain_count: int = water_simulation.get_domain_count();
 	var water_vt: VoxelTool = water_simulation.get_water_node().get_voxel_tool();

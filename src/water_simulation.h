@@ -59,6 +59,7 @@ namespace godot
 		
 		int get_domain_count() const;
 		AABB get_domain_aabb(int index) const;
+		AABB get_domain_inner_aabb(int index) const;
 		void pause() const;
 		void resume() const;
 
