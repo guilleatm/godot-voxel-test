@@ -118,6 +118,8 @@ void WaterDomain::update()
 {
 	pull(m_water_buffer, m_terrain_buffer);
 
+	PRINT(m_aabb.size);
+
 	Ref<VoxelBuffer> new_water_buffer = clone_water_buffer(m_water_buffer);
 
 	Vector3i min_with_water = Vector3i(INT32_MAX, INT32_MAX, INT32_MAX);
@@ -150,9 +152,9 @@ void WaterDomain::update()
 
 	push(new_water_buffer);
 
-	update_inner_aabb(min_with_water, max_with_water, m_inner_aabb);
+	update_inner_aabb(min_with_water, max_with_water, m_aabb, m_inner_aabb);
 
-	update_size();
+	update_size(m_aabb, m_inner_aabb);
 }
 
 void WaterDomain::p_update_sdf(int x, int z, const Ref<VoxelBuffer>& src_buffer, Ref<VoxelBuffer>& dst_buffer) const
@@ -160,12 +162,22 @@ void WaterDomain::p_update_sdf(int x, int z, const Ref<VoxelBuffer>& src_buffer,
 	const uint64_t MINUS_ONE_F = 32769;
 	const uint64_t PLUS_ONE_F = 32767;
 
+	// if (inside_bounds(x, z, m_aabb))
+	// {
+	// 	PRINT("inside");
+	// }
+	// else
+	// {
+	// 	PRINT("outside");
+	// 	return;
+	// }
+
 	int offset = src_buffer->get_voxel(x, OFFSET, z, CH_WATER);
 	int n = src_buffer->get_voxel(x, HEIGHT, z, CH_WATER);
 	int height = n / COMPLETE_WATER;
 	int water = n % COMPLETE_WATER;
 	
-	dst_buffer->fill_area(PLUS_ONE_F, Vector3i(x, 0, z), Vector3i(x + 1, dst_buffer->get_size().y, z + 1), CH_SDF);
+	dst_buffer->fill_area(PLUS_ONE_F, Vector3i(x, 0, z), Vector3i(x + 1, src_buffer->get_size().y, z + 1), CH_SDF);
 	dst_buffer->fill_area(MINUS_ONE_F, Vector3i(x, offset, z), Vector3i(x + 1, offset + height, z + 1), CH_SDF);
 	// 	dst_buffer->fill_area(MINUS_ONE_F, Vector3i(x, offset - 1, z), Vector3i(x + 1, offset + height - 1, z + 1), CH_SDF);
 
@@ -191,15 +203,15 @@ void WaterDomain::p_update_min_max(int x, int z, const Ref<VoxelBuffer>& src_buf
 		min.z = std::min(min.z, z);
 
 		max.x = std::max(max.x, x);
-		max.y = std::max(max.y, height);
+		max.y = std::max(max.y, height + 1); // (height + 1) because after height, we van have a water voxel.
 		max.z = std::max(max.z, z);
 	}
 }
 
-void WaterDomain::update_inner_aabb(const Vector3i& min, const Vector3i& max, AABB& aabb) const
+void WaterDomain::update_inner_aabb(const Vector3i& min, const Vector3i& max, const AABB& aabb, AABB& inner_aabb) const
 {
-	aabb.set_position( m_aabb.position + min );
-	aabb.set_end( m_aabb.position + max );
+	inner_aabb.set_position( aabb.position + min );
+	inner_aabb.set_end( aabb.position + max );
 }
 
 Ref<VoxelBuffer> WaterDomain::clone_water_buffer(const Ref<VoxelBuffer>& src_buffer) const
@@ -269,8 +281,16 @@ void WaterDomain::push(const Ref<VoxelBuffer>& src_water_buffer) const
 	water_tool->paste(m_aabb.position, src_water_buffer, CH_WATER_MASK | CH_SDF_MASK);
 }
 
-void WaterDomain::update_size()
+void WaterDomain::update_size(AABB& aabb, const AABB& inner_aabb) const
 {
 	if (!m_auto_resize) return;
+
+	AABB aux_inner_aabb = inner_aabb.grow(1);
+
+	if ( !aabb.encloses( aux_inner_aabb ) )
+	{
+		// aabb.set_position( aux_inner_aabb.get_position() );
+		aabb.set_end( aux_inner_aabb.get_end() );
+	}
 
 }

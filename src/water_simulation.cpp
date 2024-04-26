@@ -85,7 +85,15 @@ void WaterSimulation::_process(double delta)
 	for (int i = domains.size() - 1; i >= 0; i--)
 	{
 		WaterDomain* domain = domains[i];
-		domain->update();
+		
+		try
+		{
+			domain->update();
+		}
+		catch (...)
+		{
+			PRINT("Error man");
+		}
 
 		// if (domains[i]->is_stable())
 		// {

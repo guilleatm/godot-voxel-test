@@ -51,11 +51,12 @@ script = ExtResource("7_ymjgv")
 water_simulation = NodePath("../water_simulation")
 auto_create_domain = true
 debug_draw_domains = true
+debug_draw_height_info = true
 
 [node name="water_simulation" type="WaterSimulation" parent="."]
 terrain = NodePath("terrain")
 water = NodePath("water")
-simulation_timestep_msec = 200
+simulation_timestep_msec = 1000
 
 [node name="terrain" type="VoxelTerrain" parent="water_simulation"]
 generator = ExtResource("4_la6j5")

@@ -46,10 +46,14 @@ namespace godot
         void p_update_sdf(int x, int z, const Ref<VoxelBuffer>& src_buffer, Ref<VoxelBuffer>& dst_buffer) const;
         void p_update_min_max(int x, int z, const Ref<VoxelBuffer>& src_buffer, Vector3i& min, Vector3i& max) const;
 
-        void update_inner_aabb(const Vector3i& min, const Vector3i& max, AABB& aabb) const;
+        void update_inner_aabb(const Vector3i& min, const Vector3i& max, const AABB& aabb, AABB& inner_aabb) const;
+        void update_size(AABB& aabb, const AABB& inner_aabb) const;
+
 
         bool inside_bounds(int x, int z, const AABB& aabb) const;
-        
+
+
+
     public:
 
         WaterDomain(Vector3i _origin, Vector3i _size, const Ref<VoxelTool> &water_tool, const Ref<VoxelTool> &terrain_tool, bool auto_resize);
@@ -58,7 +62,7 @@ namespace godot
 
         // void reset_resize_buffer();
         // void update_resize_buffer(Vector2i xz, int origin, int height);
-        void update_size();
+
 
         // bool is_stable();
         // void update();
