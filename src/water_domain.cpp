@@ -118,8 +118,6 @@ void WaterDomain::update()
 {
 	pull(m_water_buffer, m_terrain_buffer);
 
-	PRINT(m_aabb.size);
-
 	Ref<VoxelBuffer> new_water_buffer = clone_buffer(m_water_buffer);
 
 	Vector3i min_with_water = Vector3i(INT32_MAX, INT32_MAX, INT32_MAX);
@@ -150,27 +148,17 @@ void WaterDomain::update()
 		}
 	}
 
+	update_inner_aabb(min_with_water, max_with_water, m_aabb, m_inner_aabb);
+	update_size(m_aabb, m_inner_aabb);
+
 	push(new_water_buffer);
 
-	update_inner_aabb(min_with_water, max_with_water, m_aabb, m_inner_aabb);
-
-	update_size(m_aabb, m_inner_aabb);
 }
 
 void WaterDomain::p_update_sdf(int x, int z, const Ref<VoxelBuffer>& src_buffer, Ref<VoxelBuffer>& dst_buffer) const
 {
 	const uint64_t MINUS_ONE_F = 32769;
 	const uint64_t PLUS_ONE_F = 32767;
-
-	// if (inside_bounds(x, z, m_aabb))
-	// {
-	// 	PRINT("inside");
-	// }
-	// else
-	// {
-	// 	PRINT("outside");
-	// 	return;
-	// }
 
 	int offset = src_buffer->get_voxel(x, OFFSET, z, CH_WATER);
 	int n = src_buffer->get_voxel(x, HEIGHT, z, CH_WATER);
@@ -216,7 +204,13 @@ void WaterDomain::update_inner_aabb(const Vector3i& min, const Vector3i& max, co
 
 Ref<VoxelBuffer> WaterDomain::clone_buffer(const Ref<VoxelBuffer>& src_buffer) const
 {
-	return Ref<VoxelBuffer>( src_buffer );
+	Ref<VoxelBuffer> clone = Ref<VoxelBuffer>( new VoxelBuffer() );
+	clone->set_channel_depth(CH_WATER, VoxelBuffer::DEPTH_8_BIT);
+	Vector3i src_size = src_buffer->get_size();
+	clone->create(src_size.x, src_size.y, src_size.z);
+	clone->copy_channel_from(src_buffer, CH_WATER);
+	return clone;
+	// return Ref<VoxelBuffer>( src_buffer );
 }
 
 void WaterDomain::clear_heigth_data(Ref<VoxelBuffer>& buffer) const
@@ -286,7 +280,7 @@ void WaterDomain::update_size(AABB& aabb, const AABB& inner_aabb) const
 	if ( !aabb.encloses( aux_inner_aabb ) )
 	{
 		Vector3i og_size = aabb.get_size();
-		aabb.set_end( aux_inner_aabb.get_end() );
+		// aabb.set_end( aux_inner_aabb.get_end() );
 
 
 		Vector3i og_position = aabb.get_position();
@@ -296,13 +290,15 @@ void WaterDomain::update_size(AABB& aabb, const AABB& inner_aabb) const
 		{
 			auto og_water_buffer = clone_buffer(m_water_buffer);
 
-
-			Vector3i v = new_position - og_position;
-			aabb.set_position(new_position);
+			// Vector3i v = new_position - og_position;
+			
+			Vector3i v = Vector3i(1, -1, 0);
+			
+			aabb.set_position(og_position + v);
 		
 			Vector3i new_size = aabb.get_size();
 
-			m_water_buffer->copy_channel_from_area(og_water_buffer, Vector3i(0, 0, 0), new_size, Vector3i(-v.x, 0, -v.z), CH_WATER);
+			m_water_buffer->copy_channel_from_area(og_water_buffer, Vector3i(0, 0, 0), new_size, Vector3i(v.x, 0, v.z), CH_WATER);
 		
 		}
 	

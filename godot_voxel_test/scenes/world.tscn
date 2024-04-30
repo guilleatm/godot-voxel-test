@@ -52,6 +52,7 @@ water_simulation = NodePath("../water_simulation")
 auto_create_domain = true
 debug_draw_domains = true
 debug_draw_height_info = true
+debug_draw_water_channel = true
 
 [node name="water_simulation" type="WaterSimulation" parent="."]
 terrain = NodePath("terrain")
@@ -66,6 +67,7 @@ material_override = SubResource("ShaderMaterial_4xaoo")
 script = ExtResource("8_70qrb")
 
 [node name="water" type="VoxelTerrain" parent="water_simulation" node_paths=PackedStringArray("terrain")]
+visible = false
 mesher = ExtResource("5_ey6rv")
 bounds = AABB(-96, -16, -96, 192, 112, 192)
 generate_collisions = false

@@ -13,6 +13,7 @@ class_name WaterSimulationManager;
 @export var debug_draw_domains: bool;
 @export var debug_draw_sdf_water: bool;
 @export var debug_draw_height_info: bool;
+@export var debug_draw_water_channel: bool;
 
 func _enter_tree():
 	if (auto_create_domain):
@@ -24,7 +25,7 @@ func _process(_delta: float) -> void:
 	if (debug_draw_domains):
 		draw_domains();
 		
-	if (debug_draw_sdf_water or debug_draw_height_info):
+	if (debug_draw_sdf_water or debug_draw_height_info or debug_draw_water_channel):
 		draw_water();
 
 
@@ -61,6 +62,11 @@ func draw_water() -> void:
 
 					if (debug_draw_sdf_water and sdf_water < 0):
 						DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + pos, .2, Color.BLUE);
+
+					if (debug_draw_water_channel):
+						var water_channel: float = buffer.get_voxel(x, y, z, VoxelBuffer.CHANNEL_DATA5);
+						if (water_channel > 0):
+							DebugDraw3D.draw_sphere(Vector3i(domain_aabb.position) + pos, .2, Color.INDIAN_RED);
 
 
 					if (debug_draw_height_info):
