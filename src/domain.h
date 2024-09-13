@@ -9,6 +9,7 @@ namespace godot
 
 class VoxelTerrain;
 class VoxelTool;
+class VoxelBuffer;
 
 class Domain : public Node3D
 {
@@ -32,6 +33,7 @@ private:
 
 	void process_water_height();
 	void process_water_xz();
+	void try_add_water(float value, Vector3i v, Ref<VoxelBuffer> buffer);
 
 
 protected:
