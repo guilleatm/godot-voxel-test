@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=3 uid="uid://utpauekx26y0"]
+
+[ext_resource type="Script" path="res://scripts/debug/free_look_camera.gd" id="1_ecw4u"]
+
+[sub_resource type="VoxelGeneratorWaves" id="VoxelGeneratorWaves_e2jxj"]
+height_start = 0.0
+pattern_size = Vector2(10, 10)
+
+[sub_resource type="VoxelMesherTransvoxel" id="VoxelMesherTransvoxel_c62mf"]
+
+[sub_resource type="VoxelGeneratorWaves" id="VoxelGeneratorWaves_mga5g"]
+
+[node name="main" type="Node3D"]
+
+[node name="domain" type="Domain" parent="." node_paths=PackedStringArray("Terrain", "Water")]
+Terrain = NodePath("../terrain")
+Water = NodePath("../water")
+
+[node name="terrain" type="VoxelTerrain" parent="."]
+visible = false
+generator = SubResource("VoxelGeneratorWaves_e2jxj")
+mesher = SubResource("VoxelMesherTransvoxel_c62mf")
+
+[node name="water" type="VoxelTerrain" parent="."]
+generator = SubResource("VoxelGeneratorWaves_mga5g")
+mesher = SubResource("VoxelMesherTransvoxel_c62mf")
+
+[node name="camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16.1849, 0)
+script = ExtResource("1_ecw4u")
+sensitivity = 1.5
+default_velocity = 30.0
+boost_speed_multiplier = 15.0
+
+[node name="voxel_viewer" type="VoxelViewer" parent="camera"]
+view_distance = 4906
+
+[node name="directional_light" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.813963, 0.580916, 0, -0.580916, 0.813963, 0, 2.19105, 0)
