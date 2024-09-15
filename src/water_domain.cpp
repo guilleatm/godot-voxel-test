@@ -25,25 +25,29 @@ const std::array<Vector2i, 4> directions =
 	Vector2i(0, -1),
 };
 
-WaterDomain::WaterDomain(Vector3i origin, Vector3i size, const Ref<VoxelTool>& _water_tool, const Ref<VoxelTool>& _terrain_tool, bool auto_resize) :
+WaterDomain::WaterDomain(Vector3i origin, Vector3i size, const Ref<VoxelTool>& _water_tool, const Ref<VoxelTool>& _terrain_tool) :
 m_aabb( AABB(origin, size) ),
-m_inner_aabb( m_aabb ),
-water_tool( _water_tool ),
-terrain_tool( _terrain_tool ),
+// m_inner_aabb( m_aabb ),
+m_water_tool( _water_tool ),
+m_terrain_tool( _terrain_tool ),
 m_water_buffer( Ref<VoxelBuffer>( new VoxelBuffer() ) ),
-m_terrain_buffer( Ref<VoxelBuffer>( new VoxelBuffer() ) ),
-m_auto_resize(auto_resize)
+m_terrain_buffer( Ref<VoxelBuffer>( new VoxelBuffer() ) )
 {
 	m_water_buffer->set_channel_depth(CH_WATER, godot::VoxelBuffer::Depth::DEPTH_8_BIT);
 	prepare();
 }
 
 // TODO: terrain into account
-bool WaterDomain::can_tr_down(int x, int z, const Ref<VoxelBuffer>& buffer) const
+bool WaterDomain::can_tr_down(int x, int z, const Ref<VoxelBuffer>& water_buffer, const Ref<VoxelBuffer>& terrain_buffer) const
 {
 	bool in_bounds = inside_bounds(x, z, m_aabb);
 	if (!in_bounds) return false;
-	int offset = buffer->get_voxel(x, OFFSET, z, CH_WATER);
+
+	int offset = water_buffer->get_voxel(x, OFFSET, z, CH_WATER);
+
+	float terrain_value = terrain_buffer->get_voxel_f(x, offset, z, VoxelBuffer::CHANNEL_SDF);
+	if (terrain_value < 0) return false;
+
 	return offset > 0;
 }
 
@@ -113,21 +117,27 @@ bool WaterDomain::inside_bounds(int x, int z, const AABB& aabb) const
 	return aabb.has_point( aabb.position + Vector3i(x, OFFSET, z) + BOUNDARY_CHECK_OFFSET);
 }
 
+// Vector3i WaterDomain::get_aabb_size(const AABB& aabb) const
+// {
+// 	return Vector3i( (int) aabb.size.x, (int) aabb.size.y, (int) aabb.size.z);
+// }
+
+
 
 void WaterDomain::update()
 {
-	pull(m_water_buffer, m_terrain_buffer);
+	pull();
 
 	Ref<VoxelBuffer> new_water_buffer = clone_buffer(m_water_buffer);
 
-	Vector3i min_with_water = Vector3i(INT32_MAX, INT32_MAX, INT32_MAX);
-	Vector3i max_with_water = Vector3i(-1, -1, -1);
+	Vector3i aabb_min = m_aabb.get_size();
+	Vector3i aabb_max = Vector3i(0, 0, 0);
 
 	for (int x = 0; x < (int) m_aabb.size.x; x++)
 	{
 		for (int z = 0; z < (int) m_aabb.size.z; z++)
 		{
-			bool can_transfer_water_down = can_tr_down(x, z, m_water_buffer);
+			bool can_transfer_water_down = can_tr_down(x, z, m_water_buffer, m_terrain_buffer);
 			
 			if (can_transfer_water_down)
 			{
@@ -144,15 +154,13 @@ void WaterDomain::update()
 			}
 
 			p_update_sdf(x, z, m_water_buffer, new_water_buffer);
-			p_update_min_max(x, z, m_water_buffer, min_with_water, max_with_water);
+			p_update_aabb_min_max(x, z, aabb_min, aabb_max);
 		}
 	}
 
-	update_inner_aabb(min_with_water, max_with_water, m_aabb, m_inner_aabb);
-	update_size(m_aabb, m_inner_aabb);
-
 	push(new_water_buffer);
-
+	
+	update_aabb(aabb_min, aabb_max);
 }
 
 void WaterDomain::p_update_sdf(int x, int z, const Ref<VoxelBuffer>& src_buffer, Ref<VoxelBuffer>& dst_buffer) const
@@ -178,28 +186,58 @@ void WaterDomain::p_update_sdf(int x, int z, const Ref<VoxelBuffer>& src_buffer,
 	}
 }
 
-void WaterDomain::p_update_min_max(int x, int z, const Ref<VoxelBuffer>& src_buffer, Vector3i& min, Vector3i& max) const
+void WaterDomain::p_update_aabb_min_max(int x, int z, Vector3i& min, Vector3i& max) const
 {	
-	int n = src_buffer->get_voxel(x, HEIGHT, z, CH_WATER);
-	int offset = src_buffer->get_voxel(x, OFFSET, z, CH_WATER);
-	int height = n / COMPLETE_WATER;
+	int water_amount = m_water_buffer->get_voxel(x, HEIGHT, z, CH_WATER);
+	int offset = m_water_buffer->get_voxel(x, OFFSET, z, CH_WATER);
+	int water_voxels = water_amount / COMPLETE_WATER;
 
-	if (height > 0)
+	if (water_amount > 0)
 	{
 		min.x = std::min(min.x, x);
 		min.y = std::min(min.y, offset);
 		min.z = std::min(min.z, z);
 
 		max.x = std::max(max.x, x);
-		max.y = std::max(max.y, height + 1); // (height + 1) because after height, we van have a water voxel.
+		max.y = std::max(max.y, water_voxels + 1); // (height + 1) because after height, we van have a water voxel.
 		max.z = std::max(max.z, z);
 	}
 }
 
-void WaterDomain::update_inner_aabb(const Vector3i& min, const Vector3i& max, const AABB& aabb, AABB& inner_aabb) const
+// void WaterDomain::update_world_data() const
+// {
+// }
+
+void WaterDomain::update_aabb(const Vector3i& min, const Vector3i& max)
 {
-	inner_aabb.set_position( aabb.position + min );
-	inner_aabb.set_end( aabb.position + max );
+	PRINT(m_aabb);
+
+	PRINT(min);
+	PRINT(max);
+
+	Vector3i v_one = Vector3i(1, 1, 1);
+
+	Vector3i og_position = m_aabb.get_position();
+	Vector3i new_position = og_position + min - v_one;
+	Vector3i new_end_position = og_position + max + v_one;
+
+	Vector3i new_size = new_end_position - new_position;
+
+	// delete(&m_aabb);
+	
+	pull();
+
+	Vector3i diff_position = new_position - og_position;
+	Vector3i diff_position_y = Vector3i(0, diff_position.y, 0);
+	m_water_tool->paste(og_position + diff_position_y, m_water_buffer, 1 << VoxelBuffer::CHANNEL_DATA5);
+
+
+	// Update AABB
+	m_aabb.set_position( new_position );
+	m_aabb.set_end( new_end_position );
+	
+	PRINT(m_aabb);
+	// m_aabb = AABB(new_position, new_size);
 }
 
 Ref<VoxelBuffer> WaterDomain::clone_buffer(const Ref<VoxelBuffer>& src_buffer) const
@@ -223,7 +261,7 @@ void WaterDomain::clear_heigth_data(Ref<VoxelBuffer>& buffer) const
 
 void WaterDomain::prepare()
 {
-	pull(m_water_buffer, m_terrain_buffer);
+	pull();
 
 	// water_buffer->set_voxel_f(-1.0f, 0, 0, 0, CH_SDF);
 	// PRINT(water_buffer->get_voxel(0, 0, 0, CH_SDF));
@@ -255,53 +293,88 @@ void WaterDomain::prepare()
 	push(m_water_buffer);
 }
 
-void WaterDomain::pull(Ref<VoxelBuffer>& dst_water_buffer, Ref<VoxelBuffer>& dst_terrain_buffer ) const
+void WaterDomain::create_water_channel(Ref<VoxelBuffer>& buffer) const
 {
-	dst_water_buffer->clear();
-	dst_water_buffer->create((int) m_aabb.size.x, (int) m_aabb.size.y, (int) m_aabb.size.z);
-	water_tool->copy(m_aabb.position, dst_water_buffer, CH_WATER_MASK | CH_SDF_MASK);
-
-	dst_terrain_buffer->clear();
-	dst_terrain_buffer->create((int) m_aabb.size.x, (int) m_aabb.size.y, (int) m_aabb.size.z);
-	terrain_tool->copy(m_aabb.position, dst_terrain_buffer, CH_SDF_MASK);
+	buffer->set_channel_depth(VoxelBuffer::CHANNEL_DATA5, VoxelBuffer::DEPTH_8_BIT);
+	buffer->fill(0, VoxelBuffer::CHANNEL_DATA5);
 }
 
-void WaterDomain::push(const Ref<VoxelBuffer>& src_water_buffer) const
+void WaterDomain::pull()
 {
-	water_tool->paste(m_aabb.position, src_water_buffer, CH_WATER_MASK | CH_SDF_MASK);
+	Vector3i size = m_aabb.get_size();
+	
+	m_water_buffer->clear();
+	m_water_buffer->create(size.x, size.y, size.z);
+	m_water_tool->copy(m_aabb.position, m_water_buffer, WaterDomain::WATER_CHANNELS);
+
+	m_terrain_buffer->clear();
+	m_terrain_buffer->create(size.x, size.y, size.z);
+	m_terrain_tool->copy(m_aabb.position, m_terrain_buffer, WaterDomain::TERRAIN_CHANNELS);
 }
 
-void WaterDomain::update_size(AABB& aabb, const AABB& inner_aabb) const
+void WaterDomain::push(const Ref<VoxelBuffer>& water_buffer) const
 {
-	if (!m_auto_resize) return;
+	m_water_tool->paste(m_aabb.position, water_buffer, WaterDomain::WATER_CHANNELS);
+}
+
+void WaterDomain::update_outer_aabb(AABB& aabb, const AABB& inner_aabb) const
+{
+	// if (!m_auto_resize) return;
+
+	// PRINT("aabb: " + aabb);
+	// PRINT("inner aabb: " + inner_aabb);
 
 	AABB aux_inner_aabb = inner_aabb.grow(1);
 
 	if ( !aabb.encloses( aux_inner_aabb ) )
 	{
-		Vector3i og_size = aabb.get_size();
-		// aabb.set_end( aux_inner_aabb.get_end() );
-
-
 		Vector3i og_position = aabb.get_position();
 		Vector3i new_position = aux_inner_aabb.get_position();
-		// Probably we can just do this if .y doesn't match
-		if (og_position != new_position)
-		{
-			auto og_water_buffer = clone_buffer(m_water_buffer);
 
-			// Vector3i v = new_position - og_position;
-			
-			Vector3i v = Vector3i(1, -1, 0);
-			
-			aabb.set_position(og_position + v);
-		
-			Vector3i new_size = aabb.get_size();
+		Vector3i diff_position = new_position - og_position;
 
-			m_water_buffer->copy_channel_from_area(og_water_buffer, Vector3i(0, 0, 0), new_size, Vector3i(v.x, 0, v.z), CH_WATER);
+		// Vector3i og_size = aabb.get_position();
+		Vector3i new_size = aux_inner_aabb.get_size();
+
+		PRINT("Diff position: " + diff_position);
+
+		// m_aabb = m_inner_aabb.cop;
+
+		// Create buffer
+		// Ref<VoxelBuffer> new_buffer = Ref<VoxelBuffer>( new VoxelBuffer() );
+		// create_water_channel(new_buffer);
+		// new_buffer->create(new_size.x, new_size.y, new_size.z);
+
+		// m_water_buffer->copy_channel_from_area(og_water_buffer, Vector3i(0, 0, 0), new_size, Vector3i(v.x, 0, v.z), CH_WATER);
+
+
 		
-		}
-	
+
 	}
 
 }
+
+
+
+
+		// // Vector3i og_size = aabb.get_size();
+		// // aabb.set_end( aux_inner_aabb.get_end() );
+
+
+		// Vector3i new_position = aux_inner_aabb.get_position();
+		// // Probably we can just do this if .y doesn't match
+		// if (og_position != new_position)
+		// {
+		// 	auto og_water_buffer = clone_buffer(m_water_buffer);
+
+		// 	// Vector3i v = new_position - og_position;
+			
+		// 	Vector3i v = Vector3i(1, 0, 0);
+			
+		// 	aabb.set_position(og_position + v);
+		
+		// 	Vector3i new_size = aabb.get_size();
+
+		// 	m_water_buffer->copy_channel_from_area(og_water_buffer, Vector3i(0, 0, 0), new_size, Vector3i(v.x, 0, v.z), CH_WATER);
+		
+		// }
