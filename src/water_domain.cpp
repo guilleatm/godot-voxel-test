@@ -210,10 +210,10 @@ void WaterDomain::p_update_aabb_min_max(int x, int z, Vector3i& min, Vector3i& m
 
 void WaterDomain::update_aabb(const Vector3i& min, const Vector3i& max)
 {
-	PRINT(m_aabb);
+	// PRINT(m_aabb);
 
-	PRINT(min);
-	PRINT(max);
+	// PRINT(min);
+	// PRINT(max);
 
 	Vector3i v_one = Vector3i(1, 1, 1);
 
@@ -229,14 +229,30 @@ void WaterDomain::update_aabb(const Vector3i& min, const Vector3i& max)
 
 	Vector3i diff_position = new_position - og_position;
 	Vector3i diff_position_y = Vector3i(0, diff_position.y, 0);
-	m_water_tool->paste(og_position + diff_position_y, m_water_buffer, 1 << VoxelBuffer::CHANNEL_DATA5);
 
+	m_water_tool->paste(og_position + diff_position_y, m_water_buffer, 1 << VoxelBuffer::CHANNEL_DATA5);
 
 	// Update AABB
 	m_aabb.set_position( new_position );
 	m_aabb.set_end( new_end_position );
+
+
+	// Update offsets
+	for (int x = 0; x < (int) m_aabb.size.x; x++)
+	{
+		for (int z = 0; z < (int) m_aabb.size.z; z++)
+		{
+			int offset = m_water_buffer->get_voxel(x, OFFSET, z, VoxelBuffer::CHANNEL_DATA5);
+			m_water_buffer->set_voxel(offset - diff_position.y, x, OFFSET, z, VoxelBuffer::CHANNEL_DATA5);
+
+			// int water_amount = m_water_buffer->get_voxel(x, HEIGHT, z, VoxelBuffer::CHANNEL_DATA5);
+			// m_water_buffer->set_voxel(water_amount, x, OFFSET, z, VoxelBuffer::CHANNEL_DATA5);
+		}
+	}
+
+	push(m_water_buffer);
 	
-	PRINT(m_aabb);
+	// PRINT(m_aabb);
 	// m_aabb = AABB(new_position, new_size);
 }
 
