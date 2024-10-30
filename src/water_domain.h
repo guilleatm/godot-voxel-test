@@ -50,7 +50,7 @@ namespace godot
         bool can_tr_spread(int x, int z, const Ref<VoxelBuffer>& buffer) const;
 
         void tr_down(int x, int z, const Ref<VoxelBuffer>& src_buffer, Ref<VoxelBuffer>& dst_buffer) const;
-        void tr_spread(int x, int z, const Ref<VoxelBuffer>& src_buffer, Ref<VoxelBuffer>& dst_buffer) const;
+        void tr_spread(int x, int z, const Ref<VoxelBuffer>& read_water_buffer, Ref<VoxelBuffer>& write_water_bufferm, const Ref<VoxelBuffer>& terrain_buffer) const;
 
         void p_update_sdf(int x, int z, const Ref<VoxelBuffer>& src_buffer, Ref<VoxelBuffer>& dst_buffer) const;
         void p_update_aabb_min_max(int x, int z, Vector3i& min, Vector3i& max) const;
@@ -61,7 +61,7 @@ namespace godot
         void update_outer_aabb(AABB& aabb, const AABB& inner_aabb) const;
 
 
-        bool inside_bounds(int x, int z, const AABB& aabb) const;
+        bool inside_bounds(int x, int z, const Ref<VoxelBuffer>& buffer) const;
 
         void create_water_channel(Ref<VoxelBuffer>& buffer) const;
 

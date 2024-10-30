@@ -37,10 +37,9 @@ m_terrain_buffer( Ref<VoxelBuffer>( new VoxelBuffer() ) )
 	prepare();
 }
 
-// TODO: terrain into account
 bool WaterDomain::can_tr_down(int x, int z, const Ref<VoxelBuffer>& water_buffer, const Ref<VoxelBuffer>& terrain_buffer) const
 {
-	bool in_bounds = inside_bounds(x, z, m_aabb);
+	bool in_bounds = inside_bounds(x, z, water_buffer);
 	if (!in_bounds) return false;
 
 	int offset = water_buffer->get_voxel(x, OFFSET, z, CH_WATER);
@@ -51,17 +50,15 @@ bool WaterDomain::can_tr_down(int x, int z, const Ref<VoxelBuffer>& water_buffer
 	return offset > 0;
 }
 
-// TODO: terrain into account
 bool WaterDomain::can_tr_spread(int x, int z, const Ref<VoxelBuffer>& buffer) const
 {
-	bool in_bounds = inside_bounds(x, z, m_aabb);
+	bool in_bounds = inside_bounds(x, z, buffer);
 	if (!in_bounds) return false;
 
 	int n = buffer->get_voxel(x, HEIGHT, z, CH_WATER);
 	return n >= COMPLETE_WATER;
 }
 
-// TODO: terrain into account
 void WaterDomain::tr_down(int x, int z, const Ref<VoxelBuffer>& src_buffer, Ref<VoxelBuffer>& dst_buffer) const
 {
 	int offset = src_buffer->get_voxel(x, OFFSET, z, CH_WATER);
@@ -75,11 +72,11 @@ void WaterDomain::tr_down(int x, int z, const Ref<VoxelBuffer>& src_buffer, Ref<
 }
 
 // TODO: terrain into account
-void WaterDomain::tr_spread(int x, int z, const Ref<VoxelBuffer>& src_buffer, Ref<VoxelBuffer>& dst_buffer) const
+void WaterDomain::tr_spread(int x, int z, const Ref<VoxelBuffer>& read_water_buffer, Ref<VoxelBuffer>& write_water_buffer, const Ref<VoxelBuffer>& terrain_buffer) const
 {
 	Vector2i cell = Vector2i(x, z);
 	
-	int n = src_buffer->get_voxel(x, HEIGHT, z, CH_WATER);
+	int n = read_water_buffer->get_voxel(x, HEIGHT, z, CH_WATER);
 	int height = n / COMPLETE_WATER;
 	int water = n % COMPLETE_WATER;
 
@@ -88,17 +85,20 @@ void WaterDomain::tr_spread(int x, int z, const Ref<VoxelBuffer>& src_buffer, Re
 	for (int i = 0; i < directions.size(); i++)
 	{
 		Vector2i neighbor_cell = cell + directions[i];
-		bool in_bounds = inside_bounds(neighbor_cell.x, neighbor_cell.y, m_aabb);
+		bool in_bounds = inside_bounds(neighbor_cell.x, neighbor_cell.y, m_water_buffer);
 
 		if (in_bounds)
 		{
-			int neighbor_n = src_buffer->get_voxel(neighbor_cell.x, HEIGHT, neighbor_cell.y, CH_WATER);
+			int neighbor_n = read_water_buffer->get_voxel(neighbor_cell.x, HEIGHT, neighbor_cell.y, CH_WATER);
 			int neighbor_height = neighbor_n / COMPLETE_WATER;
 			// int neighbor_water = neighbor_n % COMPLETE_WATER;
 
-			if (height > neighbor_height)
+			float terrain_value = terrain_buffer->get_voxel_f(x, OFFSET, z, VoxelBuffer::CHANNEL_SDF);
+			bool has_terrain = terrain_value < 0;
+
+			if (height > neighbor_height && !has_terrain)
 			{
-				dst_buffer->set_voxel(neighbor_n + 1, neighbor_cell.x, HEIGHT, neighbor_cell.y, CH_WATER);
+				write_water_buffer->set_voxel(neighbor_n + 1, neighbor_cell.x, HEIGHT, neighbor_cell.y, CH_WATER);
 				lost_water += 1;
 			}
 		}
@@ -106,15 +106,24 @@ void WaterDomain::tr_spread(int x, int z, const Ref<VoxelBuffer>& src_buffer, Re
 
 	if (lost_water > 0)
 	{
-		dst_buffer->set_voxel(n - lost_water, x, HEIGHT, z, CH_WATER);
+		write_water_buffer->set_voxel(n - lost_water, x, HEIGHT, z, CH_WATER);
 	}
 }
 
 
-bool WaterDomain::inside_bounds(int x, int z, const AABB& aabb) const
+// bool WaterDomain::inside_bounds(int x, int z, const AABB& aabb) const
+// {
+// 	const Vector3 BOUNDARY_CHECK_OFFSET = Vector3(.5, .5, .5);
+// 	return aabb.has_point( aabb.position + Vector3i(x, OFFSET, z) + BOUNDARY_CHECK_OFFSET);
+// }
+
+bool WaterDomain::inside_bounds(int x, int z, const Ref<VoxelBuffer>& buffer) const
 {
-	const Vector3 BOUNDARY_CHECK_OFFSET = Vector3(.5, .5, .5);
-	return aabb.has_point( aabb.position + Vector3i(x, OFFSET, z) + BOUNDARY_CHECK_OFFSET);
+	if (x < 0 || z < 0) return false;
+
+	Vector3i size = buffer->get_size();
+
+	return x < size.x && z < size.z;
 }
 
 // Vector3i WaterDomain::get_aabb_size(const AABB& aabb) const
@@ -133,9 +142,10 @@ void WaterDomain::update()
 	Vector3i aabb_min = m_aabb.get_size();
 	Vector3i aabb_max = Vector3i(0, 0, 0);
 
-	for (int x = 0; x < (int) m_aabb.size.x; x++)
+	Vector3i size = m_water_buffer->get_size();
+	for (int x = 0; x < size.x; x++)
 	{
-		for (int z = 0; z < (int) m_aabb.size.z; z++)
+		for (int z = 0; z < size.z; z++)
 		{
 			bool can_transfer_water_down = can_tr_down(x, z, m_water_buffer, m_terrain_buffer);
 			
@@ -149,7 +159,7 @@ void WaterDomain::update()
 
 				if (can_spread_water)
 				{
-					tr_spread(x, z, m_water_buffer, new_water_buffer);
+					tr_spread(x, z, m_water_buffer, new_water_buffer, m_terrain_buffer);
 				}
 			}
 
@@ -157,6 +167,7 @@ void WaterDomain::update()
 			p_update_aabb_min_max(x, z, aabb_min, aabb_max);
 		}
 	}
+
 
 	push(new_water_buffer);
 	
@@ -236,24 +247,21 @@ void WaterDomain::update_aabb(const Vector3i& min, const Vector3i& max)
 	m_aabb.set_position( new_position );
 	m_aabb.set_end( new_end_position );
 
-
 	// Update offsets
-	for (int x = 0; x < (int) m_aabb.size.x; x++)
+	Vector3i size = m_water_buffer->get_size();
+	for (int x = 0; x < size.x; x++)
 	{
-		for (int z = 0; z < (int) m_aabb.size.z; z++)
+		for (int z = 0; z < size.z; z++)
 		{
 			int offset = m_water_buffer->get_voxel(x, OFFSET, z, VoxelBuffer::CHANNEL_DATA5);
 			m_water_buffer->set_voxel(offset - diff_position.y, x, OFFSET, z, VoxelBuffer::CHANNEL_DATA5);
-
-			// int water_amount = m_water_buffer->get_voxel(x, HEIGHT, z, VoxelBuffer::CHANNEL_DATA5);
-			// m_water_buffer->set_voxel(water_amount, x, OFFSET, z, VoxelBuffer::CHANNEL_DATA5);
 		}
 	}
+	
 
 	push(m_water_buffer);
 	
-	// PRINT(m_aabb);
-	// m_aabb = AABB(new_position, new_size);
+	PRINT("New AABB: " + m_aabb);
 }
 
 Ref<VoxelBuffer> WaterDomain::clone_buffer(const Ref<VoxelBuffer>& src_buffer) const
